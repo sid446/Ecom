@@ -18,7 +18,8 @@ import {
   Mail,
   Phone,
   User,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react'
 
 interface FormErrors {
@@ -34,6 +35,8 @@ export default function Checkout() {
   const router = useRouter()
   const { cart, getCartTotal, clearCart } = useCart()
   const [loading, setLoading] = useState(false)
+  const [sendingOtp, setSendingOtp] = useState(false)
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [errors, setErrors] = useState<FormErrors>({})
   const [touched, setTouched] = useState<{[key: string]: boolean}>({})
@@ -142,152 +145,158 @@ export default function Checkout() {
   }
 
   const sendOtp = async () => {
-  try {
-    setOtpError('')
+    try {
+      setSendingOtp(true)
+      setOtpError('')
+      
+      // Validate form first
+      if (!validateForm()) {
+        return
+      }
+
+      const response = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          country: formData.country,
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send OTP')
+      }
+
+      setOtpSent(true)
+      setOtpCountdown(120) // 2 minutes countdown
+      
+      // For development - show OTP in console if returned
+      if (data.otp && process.env.NODE_ENV === 'development') {
+        console.log('Development OTP:', data.otp)
+        setOtp(data.otp) // Auto-fill for testing
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error)
+      setOtpError(error instanceof Error ? error.message : 'Failed to send OTP. Please try again.')
+    } finally {
+      setSendingOtp(false)
+    }
+  }
+
+  const verifyOtp = async () => {
+    try {
+      setVerifyingOtp(true)
+      setOtpError('')
+      
+      if (otp.length !== 6) {
+        throw new Error('Please enter a 6-digit code')
+      }
+
+      const response = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: formData.email, 
+          otp 
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Invalid OTP')
+      }
+
+      setOtpVerified(true)
+      setCurrentStep(2)
+    } catch (error) {
+      console.error('Error verifying OTP:', error)
+      setOtpError(error instanceof Error ? error.message : 'Invalid OTP. Please try again.')
+    } finally {
+      setVerifyingOtp(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     
-    // Validate form first
     if (!validateForm()) {
+      setCurrentStep(1)
       return
     }
 
-    const response = await fetch('/api/send-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: formData.email,
-        name: formData.name,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        postalCode: formData.postalCode,
-        country: formData.country,
-      }),
-    })
-
-    const data = await response.json()
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to send OTP')
+    // If OTP not sent yet, send it with all user data
+    if (!otpSent) {
+      await sendOtp()
+      return
     }
 
-    setOtpSent(true)
-    setOtpCountdown(120) // 2 minutes countdown
-    
-    // For development - show OTP in console if returned
-    if (data.otp && process.env.NODE_ENV === 'development') {
-      console.log('Development OTP:', data.otp)
-      setOtp(data.otp) // Auto-fill for testing
-    }
-  } catch (error) {
-    console.error('Error sending OTP:', error)
-    setOtpError(error instanceof Error ? error.message : 'Failed to send OTP. Please try again.')
-  }
-}
-
-const verifyOtp = async () => {
-  try {
-    setOtpError('')
-    
-    if (otp.length !== 6) {
-      throw new Error('Please enter a 6-digit code')
+    // If OTP sent but not verified, verify it
+    if (!otpVerified) {
+      await verifyOtp()
+      return
     }
 
-    const response = await fetch('/api/verify-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        email: formData.email, 
-        otp 
-      }),
-    })
+    // If OTP is verified, proceed to place order
+    setLoading(true)
 
-    const data = await response.json()
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Invalid OTP')
+    try {
+      const orderData = {
+        customerInfo: formData,
+        orderItems: cart.map(item => ({
+          product: item._id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+        })),
+        totalPrice: total,
+        subtotal,
+        shipping,
+        tax,
+        paymentMethod,
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          country: formData.country,
+        },
+      }
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      })
+
+      if (response.ok) {
+        const order = await response.json()
+        clearCart()
+        router.push(`/order-confirmation/${order._id}`)
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to place order')
+      }
+    } catch (error) {
+      console.error('Error placing order:', error)
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order. Please try again.' })
+    } finally {
+      setLoading(false)
     }
-
-    setOtpVerified(true)
-    setCurrentStep(2)
-  } catch (error) {
-    console.error('Error verifying OTP:', error)
-    setOtpError(error instanceof Error ? error.message : 'Invalid OTP. Please try again.')
   }
-}
-
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  
-  if (!validateForm()) {
-    setCurrentStep(1)
-    return
-  }
-
-  // If OTP not sent yet, send it with all user data
-  if (!otpSent) {
-    await sendOtp()
-    return
-  }
-
-  // If OTP sent but not verified, verify it
-  if (!otpVerified) {
-    await verifyOtp()
-    return
-  }
-
-  // If OTP is verified, proceed to place order
-  setLoading(true)
-
-  try {
-    const orderData = {
-      customerInfo: formData,
-      orderItems: cart.map(item => ({
-        product: item._id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        image: item.image,
-      })),
-      totalPrice: total,
-      subtotal,
-      shipping,
-      tax,
-      paymentMethod,
-      shippingAddress: {
-        address: formData.address,
-        city: formData.city,
-        postalCode: formData.postalCode,
-        country: formData.country,
-      },
-    }
-
-    const response = await fetch('/api/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(orderData),
-    })
-
-    if (response.ok) {
-      const order = await response.json()
-      clearCart()
-      router.push(`/order-confirmation/${order._id}`)
-    } else {
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Failed to place order')
-    }
-  } catch (error) {
-    console.error('Error placing order:', error)
-    setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order. Please try again.' })
-  } finally {
-    setLoading(false)
-  }
-}
 
   if (cart.length === 0) {
     return (
@@ -335,7 +344,7 @@ const verifyOtp = async () => {
             <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
                 ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                1
+                {sendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : '1'}
               </div>
               <span className="ml-2 font-medium">Shipping</span>
             </div>
@@ -343,7 +352,7 @@ const verifyOtp = async () => {
             <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
                 ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                2
+                {loading && currentStep === 2 ? <Loader2 className="w-4 h-4 animate-spin" /> : '2'}
               </div>
               <span className="ml-2 font-medium">Review</span>
             </div>
@@ -370,11 +379,13 @@ const verifyOtp = async () => {
                         type="text"
                         name="name"
                         required
+                        disabled={sendingOtp || verifyingOtp}
                         value={formData.name}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
                         className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
                           ${errors.name && touched.name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
+                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                           focus:outline-none focus:ring-2 focus:ring-blue-200`}
                         placeholder="Enter your full name"
                       />
@@ -395,11 +406,13 @@ const verifyOtp = async () => {
                         type="email"
                         name="email"
                         required
+                        disabled={sendingOtp || verifyingOtp}
                         value={formData.email}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
                         className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
                           ${errors.email && touched.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
+                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                           focus:outline-none focus:ring-2 focus:ring-blue-200`}
                         placeholder="Enter your email address"
                       />
@@ -421,11 +434,13 @@ const verifyOtp = async () => {
                       type="tel"
                       name="phone"
                       required
+                      disabled={sendingOtp || verifyingOtp}
                       value={formData.phone}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
                       className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
                         ${errors.phone && touched.phone ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
+                        ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                         focus:outline-none focus:ring-2 focus:ring-blue-200`}
                       placeholder="Enter your phone number"
                     />
@@ -445,12 +460,14 @@ const verifyOtp = async () => {
                     <textarea
                       name="address"
                       required
+                      disabled={sendingOtp || verifyingOtp}
                       value={formData.address}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
                       rows={3}
                       className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 resize-none
                         ${errors.address && touched.address ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
+                        ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                         focus:outline-none focus:ring-2 focus:ring-blue-200`}
                       placeholder="Enter your complete address"
                     />
@@ -469,11 +486,13 @@ const verifyOtp = async () => {
                         type="text"
                         name="city"
                         required
+                        disabled={sendingOtp || verifyingOtp}
                         value={formData.city}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
                         className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
                           ${errors.city && touched.city ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
+                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                           focus:outline-none focus:ring-2 focus:ring-blue-200`}
                         placeholder="City"
                       />
@@ -488,11 +507,13 @@ const verifyOtp = async () => {
                         type="text"
                         name="postalCode"
                         required
+                        disabled={sendingOtp || verifyingOtp}
                         value={formData.postalCode}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
                         className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
                           ${errors.postalCode && touched.postalCode ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
+                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                           focus:outline-none focus:ring-2 focus:ring-blue-200`}
                         placeholder="Postal Code"
                       />
@@ -506,10 +527,13 @@ const verifyOtp = async () => {
                       <select
                         name="country"
                         required
+                        disabled={sendingOtp || verifyingOtp}
                         value={formData.country}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-colors duration-200"
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-3 transition-colors duration-200
+                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
+                          focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500`}
                       >
                         {COUNTRIES.map(country => (
                           <option key={country} value={country}>{country}</option>
@@ -535,8 +559,11 @@ const verifyOtp = async () => {
                           <input
                             type="text"
                             value={otp}
+                            disabled={verifyingOtp}
                             onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+                            className={`w-full border border-gray-300 rounded-lg px-4 py-3 transition-colors duration-200
+                              ${verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
+                              focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500`}
                             placeholder="Enter 6-digit code"
                             maxLength={6}
                           />
@@ -545,10 +572,17 @@ const verifyOtp = async () => {
                           <button
                             type="button"
                             onClick={verifyOtp}
-                            disabled={otp.length !== 6 || otpCountdown === 0}
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-medium"
+                            disabled={otp.length !== 6 || otpCountdown === 0 || verifyingOtp}
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-medium flex items-center"
                           >
-                            Verify
+                            {verifyingOtp ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                Verifying...
+                              </>
+                            ) : (
+                              'Verify'
+                            )}
                           </button>
                         </div>
                       </div>
@@ -560,13 +594,21 @@ const verifyOtp = async () => {
                         </p>
                       )}
                       
-                      {otpCountdown === 0 && (
+                      {otpCountdown === 0 && !sendingOtp && (
                         <button
                           type="button"
                           onClick={sendOtp}
-                          className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                          disabled={sendingOtp}
+                          className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center"
                         >
-                          Resend verification code
+                          {sendingOtp ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                              Sending...
+                            </>
+                          ) : (
+                            'Resend verification code'
+                          )}
                         </button>
                       )}
                       
@@ -582,9 +624,22 @@ const verifyOtp = async () => {
                   <div className="flex justify-end pt-6">
                     <button
                       type="submit"
-                      className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold"
+                      disabled={sendingOtp || verifyingOtp}
+                      className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-semibold flex items-center"
                     >
-                      {otpSent && !otpVerified ? 'Verify and Continue' : 'Continue to Review'}
+                      {sendingOtp ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Sending Code...
+                        </>
+                      ) : verifyingOtp ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          Verifying...
+                        </>
+                      ) : (
+                        otpSent && !otpVerified ? 'Verify and Continue' : 'Continue to Review'
+                      )}
                     </button>
                   </div>
                 </form>
@@ -595,7 +650,8 @@ const verifyOtp = async () => {
                   <h2 className="text-2xl font-bold text-gray-900">Review Your Order</h2>
                   <button
                     onClick={() => setCurrentStep(1)}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
+                    disabled={loading}
+                    className="text-blue-600 hover:text-blue-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
                   >
                     Edit Details
                   </button>
@@ -615,12 +671,14 @@ const verifyOtp = async () => {
                 <div className="mb-8">
                   <h3 className="font-semibold text-gray-900 mb-4">Payment Method</h3>
                   <div className="space-y-3">
-                    <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <label className={`flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors duration-200
+                      ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <input
                         type="radio"
                         name="payment"
                         value="cod"
                         checked={paymentMethod === 'cod'}
+                        disabled={loading}
                         onChange={() => setPaymentMethod('cod')}
                         className="mr-3"
                       />
@@ -633,12 +691,14 @@ const verifyOtp = async () => {
                       </div>
                     </label>
                     
-                    <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <label className={`flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors duration-200
+                      ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <input
                         type="radio"
                         name="payment"
                         value="card"
                         checked={paymentMethod === 'card'}
+                        disabled={loading}
                         onChange={() => setPaymentMethod('card')}
                         className="mr-3"
                       />
@@ -668,8 +728,17 @@ const verifyOtp = async () => {
                     disabled={loading || paymentMethod === 'card'}
                     className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-semibold text-lg flex items-center justify-center"
                   >
-                    <Lock className="w-5 h-5 mr-2" />
-                    {loading ? 'Placing Order...' : paymentMethod === 'card' ? 'Coming Soon' : 'Place Order Securely'}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                        Placing Order...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-5 h-5 mr-2" />
+                        {paymentMethod === 'card' ? 'Coming Soon' : 'Place Order Securely'}
+                      </>
+                    )}
                   </button>
                 </form>
               </div>
@@ -692,47 +761,95 @@ const verifyOtp = async () => {
                         className="object-cover rounded-lg"
                         sizes="48px"
                       />
+                      {(loading || sendingOtp || verifyingOtp) && (
+                        <div className="absolute inset-0 bg-gray-200 bg-opacity-50 rounded-lg flex items-center justify-center">
+                          <div className="w-3 h-3 bg-gray-400 rounded-full animate-pulse"></div>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className={`text-sm font-medium text-gray-900 truncate transition-colors duration-200
+                        ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
+                        {item.name}
+                      </p>
+                      <p className={`text-sm text-gray-600 transition-colors duration-200
+                        ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
+                        Qty: {item.quantity}
+                      </p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className={`text-sm font-medium text-gray-900 transition-colors duration-200
+                      ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
                   </div>
                 ))}
               </div>
               
               <div className="border-t border-gray-200 pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className={`text-gray-600 transition-colors duration-200
+                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
+                    Subtotal:
+                  </span>
+                  <span className={`font-medium transition-colors duration-200
+                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
+                    ${subtotal.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping:</span>
-                  <span className="font-medium">
+                  <span className={`text-gray-600 transition-colors duration-200
+                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
+                    Shipping:
+                  </span>
+                  <span className={`font-medium transition-colors duration-200
+                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
                     {shipping === 0 ? (
-                      <span className="text-green-600">Free</span>
+                      <span className={`text-green-600 transition-colors duration-200
+                        ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
+                        Free
+                      </span>
                     ) : (
-                      `$${shipping.toFixed(2)}`
+                      `${shipping.toFixed(2)}`
                     )}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tax:</span>
-                  <span className="font-medium">${tax.toFixed(2)}</span>
+                  <span className={`text-gray-600 transition-colors duration-200
+                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
+                    Tax:
+                  </span>
+                  <span className={`font-medium transition-colors duration-200
+                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
+                    ${tax.toFixed(2)}
+                  </span>
                 </div>
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between">
-                    <span className="text-lg font-bold text-gray-900">Total:</span>
-                    <span className="text-xl font-bold text-gray-900">${total.toFixed(2)}</span>
+                    <span className={`text-lg font-bold text-gray-900 transition-colors duration-200
+                      ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
+                      Total:
+                    </span>
+                    <span className={`text-xl font-bold text-gray-900 transition-colors duration-200
+                      ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
+                      ${total.toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
               
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="flex items-center justify-center text-sm text-gray-500">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                  <span>SSL Secured Checkout</span>
+                  {(loading || sendingOtp || verifyingOtp) ? (
+                    <div className="flex items-center">
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      <span>SSL Secured Checkout</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
