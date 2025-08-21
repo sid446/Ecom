@@ -1,60 +1,72 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { connectToDatabase } from '@/lib/mongodb'
-import Product from '@/models/Product'
+import { NextRequest, NextResponse } from "next/server";
+import { connectToDatabase } from "@/lib/mongodb";
+import Order from "@/models/Order";
 
-// ⛔️ Do NOT type `params` – Next.js handles it internally
 export async function GET(
   request: NextRequest,
-  context: any
+  { params }: { params: { id: string } }
 ) {
   try {
-    await connectToDatabase()
-    const product = await Product.findById(context.params.id)
+    await connectToDatabase();
+    const order = await Order.findById(params.id).populate("user", "name email phone");
 
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    return NextResponse.json(product)
+    return NextResponse.json(order);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 })
+    console.error("Error fetching order:", error);
+    return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 });
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  context: any
+  { params }: { params: { id: string } }
 ) {
   try {
-    await connectToDatabase()
-    const body = await request.json()
+    await connectToDatabase();
+    const body = await request.json();
 
-    const product = await Product.findByIdAndUpdate(context.params.id, body, { new: true })
+    const order = await Order.findByIdAndUpdate(params.id, body, {
+      new: true,
+      runValidators: true,
+    }).populate("user", "name email phone");
 
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    return NextResponse.json(product)
+    return NextResponse.json(order);
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to update product', details: error.message }, { status: 400 })
+    console.error("Error updating order:", error);
+    return NextResponse.json(
+      { error: "Failed to update order", details: error.message },
+      { status: 400 }
+    );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  context: any
+  { params }: { params: { id: string } }
 ) {
   try {
-    await connectToDatabase()
-    const product = await Product.findByIdAndDelete(context.params.id)
+    await connectToDatabase();
 
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    const order = await Order.findByIdAndDelete(params.id);
+
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ message: 'Product deleted successfully' })
+    return NextResponse.json({ message: "Order deleted successfully" });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to delete product', details: error.message }, { status: 500 })
+    console.error("Error deleting order:", error);
+    return NextResponse.json(
+      { error: "Failed to delete order", details: error.message },
+      { status: 500 }
+    );
   }
 }
