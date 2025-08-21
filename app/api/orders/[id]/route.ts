@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Order from "@/models/Order";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
+type RouteContext = {
+  params: {
+    id: string | string[];
+  };
+};
+
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
     await connectToDatabase();
-    const order = await Order.findById(params.id).populate("user", "name email phone");
+    const id = Array.isArray(context.params.id)
+      ? context.params.id[0]
+      : context.params.id;
+
+    const order = await Order.findById(id).populate("user", "name email phone");
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
@@ -21,15 +28,16 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     await connectToDatabase();
+    const id = Array.isArray(context.params.id)
+      ? context.params.id[0]
+      : context.params.id;
+
     const body = await request.json();
 
-    const order = await Order.findByIdAndUpdate(params.id, body, {
+    const order = await Order.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
     }).populate("user", "name email phone");
@@ -48,14 +56,14 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Record<string, string> }
-) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     await connectToDatabase();
+    const id = Array.isArray(context.params.id)
+      ? context.params.id[0]
+      : context.params.id;
 
-    const order = await Order.findByIdAndDelete(params.id);
+    const order = await Order.findByIdAndDelete(id);
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
