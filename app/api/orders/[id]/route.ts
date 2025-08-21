@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Order from "@/models/Order";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+interface Params {
+  params: { id: string };
+}
+
+export async function GET(request: NextRequest, { params }: Params) {
   try {
     await connectToDatabase();
     const order = await Order.findById(params.id).populate("user", "name email phone");
@@ -21,10 +22,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: Params) {
   try {
     await connectToDatabase();
     const body = await request.json();
@@ -48,10 +46,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     await connectToDatabase();
 
