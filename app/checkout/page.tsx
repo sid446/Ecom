@@ -2,34 +2,21 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import Navbar from '@/components/Navbar'
 import { useCart } from '@/context/CartContext'
+import ShippingForm from '@/components/checkout/ShippingForm'
+import OrderReview from '@/components/checkout/OrderReview'
+import OrderSummary from '@/components/checkout/OrderSummary'
 import { CustomerInfo } from '@/types'
 import { 
   ShoppingBag, 
   ArrowLeft, 
-  Lock, 
-  CreditCard, 
-  Truck, 
-  CheckCircle,
-  AlertCircle,
-  MapPin,
-  Mail,
-  Phone,
-  User,
-  Clock,
   Loader2
 } from 'lucide-react'
 
 interface FormErrors {
   [key: string]: string
 }
-
-const COUNTRIES = [
-  'United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 
-  'France', 'Italy', 'Spain', 'Netherlands', 'Sweden', 'Norway', 'Denmark'
-]
 
 export default function Checkout() {
   const router = useRouter()
@@ -39,7 +26,6 @@ export default function Checkout() {
   const [verifyingOtp, setVerifyingOtp] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [errors, setErrors] = useState<FormErrors>({})
-  const [touched, setTouched] = useState<{[key: string]: boolean}>({})
   const [otp, setOtp] = useState('')
   const [otpSent, setOtpSent] = useState(false)
   const [otpVerified, setOtpVerified] = useState(false)
@@ -75,99 +61,17 @@ export default function Checkout() {
     return () => clearInterval(interval);
   }, [otpCountdown]);
 
-  const validateField = (name: string, value: string): string => {
-    switch (name) {
-      case 'name':
-        if (!value.trim()) return 'Full name is required'
-        if (value.trim().length < 2) return 'Name must be at least 2 characters'
-        return ''
-      case 'email':
-        if (!value.trim()) return 'Email is required'
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(value)) return 'Please enter a valid email address'
-        return ''
-      case 'phone':
-        if (!value.trim()) return 'Phone number is required'
-        const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/
-        if (!phoneRegex.test(value)) return 'Please enter a valid phone number'
-        return ''
-      case 'address':
-        if (!value.trim()) return 'Address is required'
-        if (value.trim().length < 5) return 'Please enter a complete address'
-        return ''
-      case 'city':
-        if (!value.trim()) return 'City is required'
-        return ''
-      case 'postalCode':
-        if (!value.trim()) return 'Postal code is required'
-        return ''
-      case 'country':
-        if (!value.trim()) return 'Country is required'
-        return ''
-      default:
-        return ''
-    }
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setTouched(prev => ({ ...prev, [name]: true }))
-    
-    const error = validateField(name, value)
-    setErrors(prev => ({ ...prev, [name]: error }))
-  }
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-    let isValid = true
-
-    Object.keys(formData).forEach(key => {
-      const error = validateField(key, formData[key as keyof CustomerInfo])
-      if (error) {
-        newErrors[key] = error
-        isValid = false
-      }
-    })
-
-    setErrors(newErrors)
-    setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}))
-    return isValid
-  }
-
   const sendOtp = async () => {
     try {
       setSendingOtp(true)
       setOtpError('')
-      
-      // Validate form first
-      if (!validateForm()) {
-        return
-      }
 
       const response = await fetch('/api/send-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email: formData.email,
-          name: formData.name,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          postalCode: formData.postalCode,
-          country: formData.country,
-        }),
+        body: JSON.stringify(formData),
       })
 
       const data = await response.json()
@@ -228,15 +132,8 @@ export default function Checkout() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) {
-      setCurrentStep(1)
-      return
-    }
-
-    // If OTP not sent yet, send it with all user data
+  const handleShippingSubmit = async () => {
+    // If OTP not sent yet, send it
     if (!otpSent) {
       await sendOtp()
       return
@@ -248,7 +145,13 @@ export default function Checkout() {
       return
     }
 
-    // If OTP is verified, proceed to place order
+    // If OTP is verified, proceed to review step
+    setCurrentStep(2)
+  }
+
+  const handleOrderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
     setLoading(true)
 
     try {
@@ -339,22 +242,22 @@ export default function Checkout() {
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
           
-          {/* Progress Steps */}
+          {/* Enhanced Progress Steps */}
           <div className="flex items-center mt-6 space-x-4">
             <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
-                ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                {sendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : '1'}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-200
+                ${currentStep >= 1 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300'}`}>
+                {sendingOtp || verifyingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : '1'}
               </div>
-              <span className="ml-2 font-medium">Shipping</span>
+              <span className="ml-3 font-medium">Shipping & Verification</span>
             </div>
-            <div className={`w-8 h-0.5 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+            <div className={`flex-1 h-0.5 transition-colors duration-200 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
             <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
-                ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-200
+                ${currentStep >= 2 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300'}`}>
                 {loading && currentStep === 2 ? <Loader2 className="w-4 h-4 animate-spin" /> : '2'}
               </div>
-              <span className="ml-2 font-medium">Review</span>
+              <span className="ml-3 font-medium">Review & Payment</span>
             </div>
           </div>
         </div>
@@ -362,497 +265,46 @@ export default function Checkout() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="xl:col-span-2">
             {currentStep === 1 ? (
-              <div className="bg-white rounded-xl shadow-sm p-8">
-                <div className="flex items-center mb-6">
-                  <Truck className="w-6 h-6 text-blue-600 mr-3" />
-                  <h2 className="text-2xl font-bold text-gray-900">Shipping Information</h2>
-                </div>
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        <User className="w-4 h-4 inline mr-2" />
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        required
-                        disabled={sendingOtp || verifyingOtp}
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
-                          ${errors.name && touched.name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                          focus:outline-none focus:ring-2 focus:ring-blue-200`}
-                        placeholder="Enter your full name"
-                      />
-                      {errors.name && touched.name && (
-                        <p className="mt-1 text-sm text-red-600 flex items-center">
-                          <AlertCircle className="w-4 h-4 mr-1" />
-                          {errors.name}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        <Mail className="w-4 h-4 inline mr-2" />
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        required
-                        disabled={sendingOtp || verifyingOtp}
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
-                          ${errors.email && touched.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                          focus:outline-none focus:ring-2 focus:ring-blue-200`}
-                        placeholder="Enter your email address"
-                      />
-                      {errors.email && touched.email && (
-                        <p className="mt-1 text-sm text-red-600 flex items-center">
-                          <AlertCircle className="w-4 h-4 mr-1" />
-                          {errors.email}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Phone className="w-4 h-4 inline mr-2" />
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      required
-                      disabled={sendingOtp || verifyingOtp}
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
-                        ${errors.phone && touched.phone ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                        ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                        focus:outline-none focus:ring-2 focus:ring-blue-200`}
-                      placeholder="Enter your phone number"
-                    />
-                    {errors.phone && touched.phone && (
-                      <p className="mt-1 text-sm text-red-600 flex items-center">
-                        <AlertCircle className="w-4 h-4 mr-1" />
-                        {errors.phone}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <MapPin className="w-4 h-4 inline mr-2" />
-                      Street Address *
-                    </label>
-                    <textarea
-                      name="address"
-                      required
-                      disabled={sendingOtp || verifyingOtp}
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      onBlur={handleBlur}
-                      rows={3}
-                      className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 resize-none
-                        ${errors.address && touched.address ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                        ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                        focus:outline-none focus:ring-2 focus:ring-blue-200`}
-                      placeholder="Enter your complete address"
-                    />
-                    {errors.address && touched.address && (
-                      <p className="mt-1 text-sm text-red-600 flex items-center">
-                        <AlertCircle className="w-4 h-4 mr-1" />
-                        {errors.address}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
-                      <input
-                        type="text"
-                        name="city"
-                        required
-                        disabled={sendingOtp || verifyingOtp}
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
-                          ${errors.city && touched.city ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                          focus:outline-none focus:ring-2 focus:ring-blue-200`}
-                        placeholder="City"
-                      />
-                      {errors.city && touched.city && (
-                        <p className="mt-1 text-sm text-red-600">{errors.city}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Postal Code *</label>
-                      <input
-                        type="text"
-                        name="postalCode"
-                        required
-                        disabled={sendingOtp || verifyingOtp}
-                        value={formData.postalCode}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
-                          ${errors.postalCode && touched.postalCode ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                          focus:outline-none focus:ring-2 focus:ring-blue-200`}
-                        placeholder="Postal Code"
-                      />
-                      {errors.postalCode && touched.postalCode && (
-                        <p className="mt-1 text-sm text-red-600">{errors.postalCode}</p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Country *</label>
-                      <select
-                        name="country"
-                        required
-                        disabled={sendingOtp || verifyingOtp}
-                        value={formData.country}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-3 transition-colors duration-200
-                          ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                          focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500`}
-                      >
-                        {COUNTRIES.map(country => (
-                          <option key={country} value={country}>{country}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* OTP Verification Section */}
-                  {otpSent && !otpVerified && (
-                    <div className="pt-6 border-t border-gray-200">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Verification</h3>
-                      <p className="text-gray-600 mb-4">
-                        We've sent a 6-digit verification code to <span className="font-medium">{formData.email}</span>. 
-                        Please check your inbox and enter the code below.
-                      </p>
-                      
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Verification Code
-                          </label>
-                          <input
-                            type="text"
-                            value={otp}
-                            disabled={verifyingOtp}
-                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            className={`w-full border border-gray-300 rounded-lg px-4 py-3 transition-colors duration-200
-                              ${verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                              focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500`}
-                            placeholder="Enter 6-digit code"
-                            maxLength={6}
-                          />
-                        </div>
-                        <div className="mt-8">
-                          <button
-                            type="button"
-                            onClick={verifyOtp}
-                            disabled={otp.length !== 6 || otpCountdown === 0 || verifyingOtp}
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-medium flex items-center"
-                          >
-                            {verifyingOtp ? (
-                              <>
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                Verifying...
-                              </>
-                            ) : (
-                              'Verify'
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {otpCountdown > 0 && (
-                        <p className="mt-2 text-sm text-gray-600 flex items-center">
-                          <Clock className="w-4 h-4 mr-1" />
-                          Code expires in {Math.floor(otpCountdown / 60)}:{(otpCountdown % 60).toString().padStart(2, '0')}
-                        </p>
-                      )}
-                      
-                      {otpCountdown === 0 && !sendingOtp && (
-                        <button
-                          type="button"
-                          onClick={sendOtp}
-                          disabled={sendingOtp}
-                          className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center"
-                        >
-                          {sendingOtp ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                              Sending...
-                            </>
-                          ) : (
-                            'Resend verification code'
-                          )}
-                        </button>
-                      )}
-                      
-                      {otpError && (
-                        <p className="mt-2 text-sm text-red-600 flex items-center">
-                          <AlertCircle className="w-4 h-4 mr-1" />
-                          {otpError}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-end pt-6">
-                    <button
-                      type="submit"
-                      disabled={sendingOtp || verifyingOtp}
-                      className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-semibold flex items-center"
-                    >
-                      {sendingOtp ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Sending Code...
-                        </>
-                      ) : verifyingOtp ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Verifying...
-                        </>
-                      ) : (
-                        otpSent && !otpVerified ? 'Verify and Continue' : 'Continue to Review'
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
+              <ShippingForm
+                formData={formData}
+                setFormData={setFormData}
+                onSubmit={handleShippingSubmit}
+                sendingOtp={sendingOtp}
+                verifyingOtp={verifyingOtp}
+                otp={otp}
+                setOtp={setOtp}
+                otpSent={otpSent}
+                otpVerified={otpVerified}
+                otpCountdown={otpCountdown}
+                otpError={otpError}
+                onVerifyOtp={verifyOtp}
+                onSendOtp={sendOtp}
+              />
             ) : (
-              <div className="bg-white rounded-xl shadow-sm p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Review Your Order</h2>
-                  <button
-                    onClick={() => setCurrentStep(1)}
-                    disabled={loading}
-                    className="text-blue-600 hover:text-blue-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
-                  >
-                    Edit Details
-                  </button>
-                </div>
-                
-                {/* Shipping Address Summary */}
-                <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-semibold text-gray-900 mb-2">Shipping Address</h3>
-                  <p className="text-gray-700">{formData.name}</p>
-                  <p className="text-gray-700">{formData.address}</p>
-                  <p className="text-gray-700">{formData.city}, {formData.postalCode}</p>
-                  <p className="text-gray-700">{formData.country}</p>
-                  <p className="text-gray-700">{formData.email} • {formData.phone}</p>
-                </div>
-                
-                {/* Payment Method */}
-                <div className="mb-8">
-                  <h3 className="font-semibold text-gray-900 mb-4">Payment Method</h3>
-                  <div className="space-y-3">
-                    <label className={`flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors duration-200
-                      ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="cod"
-                        checked={paymentMethod === 'cod'}
-                        disabled={loading}
-                        onChange={() => setPaymentMethod('cod')}
-                        className="mr-3"
-                      />
-                      <div className="flex items-center">
-                        <Truck className="w-5 h-5 text-green-600 mr-2" />
-                        <div>
-                          <p className="font-medium">Cash on Delivery</p>
-                          <p className="text-sm text-gray-600">Pay when you receive your order</p>
-                        </div>
-                      </div>
-                    </label>
-                    
-                    <label className={`flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors duration-200
-                      ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="card"
-                        checked={paymentMethod === 'card'}
-                        disabled={loading}
-                        onChange={() => setPaymentMethod('card')}
-                        className="mr-3"
-                      />
-                      <div className="flex items-center">
-                        <CreditCard className="w-5 h-5 text-blue-600 mr-2" />
-                        <div>
-                          <p className="font-medium">Credit/Debit Card</p>
-                          <p className="text-sm text-gray-600">Secure online payment (Coming Soon)</p>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-                
-                {errors.submit && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="flex items-center">
-                      <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-                      <p className="text-red-800">{errors.submit}</p>
-                    </div>
-                  </div>
-                )}
-                
-                <form onSubmit={handleSubmit}>
-                  <button
-                    type="submit"
-                    disabled={loading || paymentMethod === 'card'}
-                    className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-semibold text-lg flex items-center justify-center"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                        Placing Order...
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="w-5 h-5 mr-2" />
-                        {paymentMethod === 'card' ? 'Coming Soon' : 'Place Order Securely'}
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
+              <OrderReview
+                formData={formData}
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                loading={loading}
+                errors={errors}
+                onEditDetails={() => setCurrentStep(1)}
+                onSubmit={handleOrderSubmit}
+              />
             )}
           </div>
           
-          {/* Order Summary Sidebar */}
+          {/* Enhanced Order Summary Sidebar */}
           <div className="xl:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h3>
-              
-              <div className="space-y-4 mb-6">
-                {cart.map((item) => (
-                  <div key={item._id} className="flex items-center space-x-3">
-                    <div className="relative w-12 h-12 flex-shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover rounded-lg"
-                        sizes="48px"
-                      />
-                      {(loading || sendingOtp || verifyingOtp) && (
-                        <div className="absolute inset-0 bg-gray-200 bg-opacity-50 rounded-lg flex items-center justify-center">
-                          <div className="w-3 h-3 bg-gray-400 rounded-full animate-pulse"></div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium text-gray-900 truncate transition-colors duration-200
-                        ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
-                        {item.name}
-                      </p>
-                      <p className={`text-sm text-gray-600 transition-colors duration-200
-                        ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
-                        Qty: {item.quantity}
-                      </p>
-                    </div>
-                    <p className={`text-sm font-medium text-gray-900 transition-colors duration-200
-                      ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="border-t border-gray-200 pt-4 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className={`text-gray-600 transition-colors duration-200
-                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
-                    Subtotal:
-                  </span>
-                  <span className={`font-medium transition-colors duration-200
-                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
-                    ${subtotal.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className={`text-gray-600 transition-colors duration-200
-                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
-                    Shipping:
-                  </span>
-                  <span className={`font-medium transition-colors duration-200
-                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
-                    {shipping === 0 ? (
-                      <span className={`text-green-600 transition-colors duration-200
-                        ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
-                        Free
-                      </span>
-                    ) : (
-                      `${shipping.toFixed(2)}`
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className={`text-gray-600 transition-colors duration-200
-                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-400' : ''}`}>
-                    Tax:
-                  </span>
-                  <span className={`font-medium transition-colors duration-200
-                    ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
-                    ${tax.toFixed(2)}
-                  </span>
-                </div>
-                <div className="border-t border-gray-200 pt-3">
-                  <div className="flex justify-between">
-                    <span className={`text-lg font-bold text-gray-900 transition-colors duration-200
-                      ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
-                      Total:
-                    </span>
-                    <span className={`text-xl font-bold text-gray-900 transition-colors duration-200
-                      ${(loading || sendingOtp || verifyingOtp) ? 'text-gray-500' : ''}`}>
-                      ${total.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  {(loading || sendingOtp || verifyingOtp) ? (
-                    <div className="flex items-center">
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                      <span>SSL Secured Checkout</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+            <OrderSummary
+              cart={cart}
+              subtotal={subtotal}
+              shipping={shipping}
+              tax={tax}
+              total={total}
+              loading={loading}
+              sendingOtp={sendingOtp}
+              verifyingOtp={verifyingOtp}
+            />
           </div>
         </div>
       </main>
