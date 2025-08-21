@@ -5,11 +5,14 @@ import Order from "@/models/Order";
 // GET /api/orders/:id
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     await connectToDatabase();
-    const order = await Order.findById(params.id).populate("user", "name email phone");
+    const order = await Order.findById(context.params.id).populate(
+      "user",
+      "name email phone"
+    );
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
@@ -25,13 +28,13 @@ export async function GET(
 // PUT /api/orders/:id
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     await connectToDatabase();
     const body = await request.json();
 
-    const order = await Order.findByIdAndUpdate(params.id, body, {
+    const order = await Order.findByIdAndUpdate(context.params.id, body, {
       new: true,
       runValidators: true,
     }).populate("user", "name email phone");
@@ -53,12 +56,11 @@ export async function PUT(
 // DELETE /api/orders/:id
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     await connectToDatabase();
-
-    const order = await Order.findByIdAndDelete(params.id);
+    const order = await Order.findByIdAndDelete(context.params.id);
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
