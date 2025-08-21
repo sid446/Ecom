@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
     // ⭐⭐⭐ ADD EMAIL CONFIRMATION CODE HERE ⭐⭐⭐
     try {
       // Send order confirmation email
-      const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+
       const emailResponse = await fetch(`${baseUrl}/api/send-order-confirmation`, {
         method: 'POST',
         headers: {
