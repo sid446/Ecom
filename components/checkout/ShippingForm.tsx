@@ -162,7 +162,7 @@ export default function ShippingForm({
               value={formData.name}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
+              className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 
                 ${errors.name && touched.name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
                 ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-blue-200`}
@@ -189,7 +189,7 @@ export default function ShippingForm({
               value={formData.email}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
+              className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 
                 ${errors.email && touched.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
                 ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-blue-200`}
@@ -217,7 +217,7 @@ export default function ShippingForm({
             value={formData.phone}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
+            className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 
               ${errors.phone && touched.phone ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
               ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
               focus:outline-none focus:ring-2 focus:ring-blue-200`}
@@ -244,7 +244,7 @@ export default function ShippingForm({
             onChange={handleInputChange}
             onBlur={handleBlur}
             rows={3}
-            className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 resize-none
+            className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 resize-none
               ${errors.address && touched.address ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
               ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
               focus:outline-none focus:ring-2 focus:ring-blue-200`}
@@ -269,7 +269,7 @@ export default function ShippingForm({
               value={formData.city}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
+              className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 
                 ${errors.city && touched.city ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
                 ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-blue-200`}
@@ -290,7 +290,8 @@ export default function ShippingForm({
               value={formData.postalCode}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border rounded-lg px-4 py-3 transition-colors duration-200 
+              className={`w-full border text-black
+                 rounded-lg px-4 py-3 transition-colors duration-200 
                 ${errors.postalCode && touched.postalCode ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
                 ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-blue-200`}
@@ -310,7 +311,7 @@ export default function ShippingForm({
               value={formData.country}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-3 transition-colors duration-200
+              className={`w-full border text-black border-gray-300 rounded-lg px-4 py-3 transition-colors duration-200
                 ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500`}
             >
@@ -345,7 +346,7 @@ export default function ShippingForm({
                       value={otp}
                       disabled={verifyingOtp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-3 text-center text-lg font-mono tracking-widest transition-colors duration-200
+                      className={`w-full border text-black border-gray-300 rounded-lg px-4 py-3 text-center text-lg font-mono tracking-widest transition-colors duration-200
                         ${verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'}
                         focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500`}
                       placeholder="000000"
