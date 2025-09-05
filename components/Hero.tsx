@@ -33,7 +33,7 @@ function Hero() {
     return () => clearInterval(interval);
   }, [isAutoPlaying, data.length]);
 
-  const goToSlide = (index) => {
+  const goToSlide = (index:number) => {
     setCurrentSlide(index);
     setIsAutoPlaying(false);
     // Resume auto-play after 10 seconds
@@ -68,7 +68,7 @@ function Hero() {
               className='hidden md:block w-full h-full object-cover object-center'
               onError={(e) => {
                 console.error(`Failed to load desktop image: ${slide.imgDesktop}`);
-                e.target.style.display = 'none';
+                (e.target as HTMLImageElement).style.display = 'none';
               }}
               onLoad={() => console.log(`Desktop image loaded: ${slide.imgDesktop}`)}
             />
@@ -79,7 +79,7 @@ function Hero() {
               className='block md:hidden w-full  object-cover object-center'
               onError={(e) => {
                 console.error(`Failed to load mobile image: ${slide.imgMobile}`);
-                e.target.style.display = 'none';
+                (e.target as HTMLImageElement).style.display = 'none';
               }}
               onLoad={() => console.log(`Mobile image loaded: ${slide.imgMobile}`)}
             />
