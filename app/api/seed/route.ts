@@ -4,53 +4,46 @@ import Product from '@/models/Product'
 
 const sampleProducts = [
   {
-    name: 'Wireless Headphones',
-    description: 'High-quality wireless headphones with noise cancellation',
-    price: 99.99,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80',
+    name: 'Agenlic Bratz Knit Vest',
+    description: 'Agenlic Bratz Knit Vest',
+    price: 1599,
+    image: 'https://res.cloudinary.com/db2qa9dzs/image/upload/v1757071804/Gemini_Generated_Image_fehd9efehd9efehd_dmcvqi.png',
     stock: 15,
-    category: 'Electronics'
+    category: 'TShirts'
   },
   {
-    name: 'Smartphone',
-    description: 'Latest model smartphone with advanced features',
-    price: 699.99,
-    image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&q=80',
+    name: 'Agenlic Bratz Knit Vest',
+    description: 'Agenlic Bratz Knit Vest',
+    price: 2199,
+    image: 'https://res.cloudinary.com/db2qa9dzs/image/upload/v1757071806/Gemini_Generated_Image_2oqttp2oqttp2oqt_lhl4av.png',
     stock: 8,
-    category: 'Electronics'
+    category: 'TShirts'
   },
   {
-    name: 'Laptop',
-    description: 'Powerful laptop for work and entertainment',
-    price: 999.99,
-    image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&q=80',
+    name: 'Agenlic Bratz Knit Vest',
+    description: 'Agenlic Bratz Knit Vest',
+    price: 2999,
+    image: 'https://res.cloudinary.com/db2qa9dzs/image/upload/v1757071806/IMG_3179_rmwclt.jpg',
     stock: 5,
-    category: 'Electronics'
+    category: 'SweatShirts'
   },
   {
-    name: 'Coffee Mug',
-    description: 'Ceramic coffee mug with beautiful design',
-    price: 19.99,
-    image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcf93a?w=500&q=80',
+    name: 'Agenlic Bratz Knit Vest',
+    description: 'Agenlic Bratz Knit Vest',
+    price: 2999,
+    image: 'https://res.cloudinary.com/db2qa9dzs/image/upload/v1757072077/na3_tij9c8.png',
     stock: 25,
-    category: 'Home & Kitchen'
+    category: 'Hoodies'
   },
   {
-    name: 'Running Shoes',
-    description: 'Comfortable running shoes for all terrains',
-    price: 79.99,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80',
+    name: 'Agenlic Bratz Knit Vest',
+    description: 'Agenlic Bratz Knit Vest',
+    price: 1599,
+    image: 'https://res.cloudinary.com/db2qa9dzs/image/upload/v1757072143/na1_v7zgis.png',
     stock: 12,
-    category: 'Sports'
+    category: 'TShirts'
   },
-  {
-    name: 'Backpack',
-    description: 'Durable backpack perfect for travel and daily use',
-    price: 49.99,
-    image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80',
-    stock: 20,
-    category: 'Fashion'
-  }
+  
 ]
 
 export async function POST() {
