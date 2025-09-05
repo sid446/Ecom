@@ -459,10 +459,10 @@ export default function Home() {
 
               {/* Product Grid - Adjusted grid columns based on whether filters are shown */}
               {!loading && !error && filteredAndSortedProducts.length > 0 && (
-                <div className={`inline-grid px-3 sm:px-3 md:px-4 lg:px-0 items-center gap-4 sm:gap-6 ${
+                <div className={`inline-grid px-3 sm:px-8 md:px-4 lg:px-0 items-center gap-4 sm:gap-12  ${
                   showFilters 
-                    ? 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                    : 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
+                    ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4' 
+                    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
                 }`}>
                   {filteredAndSortedProducts.map((product) => (
                     <ProductCard key={product._id} product={product} />

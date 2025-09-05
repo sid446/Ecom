@@ -47,7 +47,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       
       return {
         ...state,
-        items: [...state.items, { ...action.payload, quantity: 1 }],
+        items: [...state.items, { ...action.payload, quantity: 1, image: action.payload.imagefront }],
       }
     
     case 'REMOVE_FROM_CART':
