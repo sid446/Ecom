@@ -27,7 +27,7 @@ export default function Home() {
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 10000 })
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [retryCount, setRetryCount] = useState(0)
-  const [showFilters, setShowFilters] = useState(false) // Changed from showMobileFilters to showFilters
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -397,7 +397,7 @@ export default function Home() {
                   </span>
                 </div>
 
-                <div className="flex  items-center gap-4">
+                <div className="flex items-center gap-4">
                   {/* Sort Dropdown */}
                   <div className="hidden sm:block">
                     <select
@@ -434,10 +434,16 @@ export default function Home() {
 
               {/* Loading State */}
               {loading && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                  {Array.from({ length: 8 }).map((_, index) => (
-                    <ProductSkeleton key={index} />
-                  ))}
+                <div className="w-full">
+                  <div className={`grid gap-4 sm:gap-6 justify-items-center ${
+                    showFilters 
+                      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' 
+                      : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+                  }`}>
+                    {Array.from({ length: 8 }).map((_, index) => (
+                      <ProductSkeleton key={index} />
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -457,16 +463,18 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Product Grid - Adjusted grid columns based on whether filters are shown */}
+              {/* Product Grid - Fixed to be universally centered */}
               {!loading && !error && filteredAndSortedProducts.length > 0 && (
-                <div className={`inline-grid px-3 sm:px-8 md:px-4 lg:px-0 items-center gap-4 sm:gap-12  ${
-                  showFilters 
-                    ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4' 
-                    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-                }`}>
-                  {filteredAndSortedProducts.map((product) => (
-                    <ProductCard key={product._id} product={product} />
-                  ))}
+                <div className="w-full">
+                  <div className={`grid gap-4 sm:gap-6 justify-items-center ${
+                    showFilters 
+                      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' 
+                      : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+                  }`}>
+                    {filteredAndSortedProducts.map((product) => (
+                      <ProductCard key={product._id} product={product} />
+                    ))}
+                  </div>
                 </div>
               )}
 
