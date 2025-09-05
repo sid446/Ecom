@@ -158,12 +158,7 @@ export default function ProductPage() {
   const StockIcon = stockStatus.icon
 
   // Mock additional images - replace with actual product images
-  const productImages = [
-    product.image,
-    product.image, // You would have different angles/views here
-    product.image,
-    product.image,
-  ]
+  const productImages = product.allimages.length > 0 ? product.allimages : [product.imagefront, product.imageback]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#E5D5C8] via-[#CCB8AD] to-[#B8A394]">

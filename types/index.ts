@@ -3,7 +3,9 @@ export interface Product {
   name: string
   description: string
   price: number
-  image: string
+  imagefront: string,
+  imageback: string,
+  allimages: string[],
   stock: number
   category: string
   createdAt?: string

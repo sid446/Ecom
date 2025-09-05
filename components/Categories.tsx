@@ -30,7 +30,7 @@ function Categories() {
             `}</style>
             
             {/* Header */}
-            <h2 className="text-2xl  sm:text-2xl md:text-3xl lg:text:text-4xl  text-gray-800  mb-5 sm:mb-5 lg:mb-10">
+            <h2 className="text-2xl text-center  sm:text-2xl md:text-3xl lg:text:text-4xl  text-gray-800 font-semibold mb-5 sm:mb-5 lg:mb-10">
                 Categories
             </h2>
                          

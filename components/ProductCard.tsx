@@ -55,50 +55,38 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     >
       {/* Product Image Container */}
       <div className="relative w-full h-50 sm:h-50 md:h-70 lg:h-90 bg-gray-200 flex items-center justify-center overflow-hidden">
+        {/* Front Image */}
         <Image
-          src={product.image}
-          alt={product.name}
+          src={product.imagefront}
+          alt={`${product.name} front`}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-cover transition-opacity duration-300 group-hover:opacity-0"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+        />
+
+        {/* Back Image - Shows on hover */}
+        <Image
+          src={product.imageback}
+          alt={`${product.name} back`}
+          fill
+          className="object-cover transition-opacity duration-300 opacity-0 group-hover:opacity-100 absolute inset-0"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
 
         {/* Mock "Save 40%" Badge - Top Left */}
-        <div className="absolute top-2 left-2 z-20   text-red-600 text-xs sm:text-xs md:text-base lg:text-base font-bold px-1 py-1   flex flex-col items-center leading-tight">
-  <span>SAVE</span>
-  <span>40%</span>
-</div>
+        <div className="absolute top-2 left-2 z-20 text-red-600 text-xs sm:text-xs md:text-base lg:text-base font-bold px-1 py-1 flex flex-col items-center leading-tight">
+          <span>SAVE</span>
+          <span>40%</span>
+        </div>
 
+        {/* Add to Cart Button Overlay - Shows on hover, positioned at bottom center */}
+        
 
-        {/* Add to Cart Button Overlay - Bottom Right Corner */}
-        <button
-          onClick={handleAddToCart}
-          disabled={product.stock === 0 || isAdding}
-          className={`
-            absolute bottom-3 right-3 z-10 p-1.5 rounded-full shadow-lg transition-all duration-300 transform
-            ${product.stock === 0
-              ? 'bg-gray-400/80 text-white cursor-not-allowed opacity-50'
-              : isAdding
-                ? 'bg-yellow-500/90 text-white cursor-wait scale-110'
-                : showSuccess
-                  ? 'bg-green-500/90 text-white scale-110'
-                  : 'bg-black/70 text-white hover:bg-black hover:scale-110 active:scale-95'
-            }
-          `}
-        >
-          {product.stock === 0 ? (
-            <Package className="h-4 w-4" />
-          ) : isAdding ? (
-            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-          ) : showSuccess ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
-        </button>
+        {/* Quick Add Icon - Top right corner, shows on hover */}
+        <div className="absolute bottom-3 right-3 z-10 p-2 bg-white/80 rounded-full shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:scale-100 scale-90">
+          <Plus className="h-4 w-4 text-gray-700" />
+        </div>
       </div>
-
-      
 
       {/* Product Details */}
       <div className="px-2 py-1">
@@ -114,7 +102,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <p className="text-xs font-medium text-gray-900">
             Rs.{product.price.toLocaleString()}
           </p>
-          
         </div>
       </div>
 

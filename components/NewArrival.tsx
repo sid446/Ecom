@@ -35,7 +35,7 @@
         ]
 
         return (
-            <div className="w-full  px-4 sm:py-4 md:py-6 lg:py-8 ">
+            <div className="w-full px-4 sm:px-4 md:px-7 lg:px-10 sm:py-4 md:py-6 lg:py-8 ">
                 {/* Custom CSS for hiding scrollbar */}
                 <style jsx>{`
                     .scrollbar-hide {
@@ -48,7 +48,7 @@
                 `}</style>
                 
                 {/* Header */}
-                <h2 className="text-2xl  sm:text-2xl md:text-3xl lg:text:text-4xl  text-gray-800  mb-5 sm:mb-5 lg:mb-10">
+                <h2 className="text-2xl text-center sm:text-2xl md:text-3xl lg:text:text-4xl  text-gray-800  font-semibold mb-5 sm:mb-5 lg:mb-10">
                     New Arrivals
                 </h2>
                             

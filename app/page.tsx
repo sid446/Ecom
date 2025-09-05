@@ -1,19 +1,19 @@
 "use client"
-import { Kalnia } from "next/font/google"
+import { Instrument_Sans } from "next/font/google"
 import { useState, useEffect, useMemo } from "react"
 import Navbar from "@/components/Navbar"
 import ProductCard from "@/components/ProductCard"
 import type { Product } from "@/types"
-import { Search, RefreshCw, AlertCircle, Package, X, ChevronDown } from "lucide-react"
+import { Search, RefreshCw, AlertCircle, Package, X, ChevronDown, Filter, SlidersHorizontal } from "lucide-react"
 import ProductSkeleton from "@/components/ProductSkeleton"
 import Hero from "@/components/Hero"
 import NewArrival from "@/components/NewArrival"
 import Categories from "@/components/Categories"
 
-const kalnia = Kalnia({
+const Instrument = Instrument_Sans({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-kalnia",
+  variable: "--font-Instrument",
 })
 
 export default function Home() {
@@ -23,9 +23,11 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<"name" | "price-low" | "price-high" | "stock">("name")
   const [filterByStock, setFilterByStock] = useState<"all" | "in-stock" | "low-stock">("all")
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 10000 })
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [retryCount, setRetryCount] = useState(0)
-  const [showFilters, setShowFilters] = useState(false)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -58,6 +60,30 @@ export default function Home() {
     fetchProducts()
   }
 
+  // Get unique categories from products
+  const availableCategories = useMemo(() => {
+    const categories = products.map(product => product.category)
+    return [...new Set(categories)].filter(Boolean)
+  }, [products])
+
+  // Get price range from products
+  const productPriceRange = useMemo(() => {
+    if (products.length === 0) return { min: 0, max: 10000 }
+    const prices = products.map(p => p.price)
+    return {
+      min: Math.floor(Math.min(...prices) / 100) * 100,
+      max: Math.ceil(Math.max(...prices) / 100) * 100
+    }
+  }, [products])
+
+  const handleCategoryToggle = (category: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
+  }
+
   const filteredAndSortedProducts = useMemo(() => {
     const filtered = products.filter((product) => {
       const matchesSearch =
@@ -69,7 +95,13 @@ export default function Home() {
         (filterByStock === "in-stock" && product.stock > 0) ||
         (filterByStock === "low-stock" && product.stock > 0 && product.stock <= 5)
 
-      return matchesSearch && matchesStockFilter
+      const matchesCategory = 
+        selectedCategories.length === 0 || selectedCategories.includes(product.category)
+
+      const matchesPrice = 
+        product.price >= priceRange.min && product.price <= priceRange.max
+
+      return matchesSearch && matchesStockFilter && matchesCategory && matchesPrice
     })
 
     filtered.sort((a, b) => {
@@ -88,39 +120,192 @@ export default function Home() {
     })
 
     return filtered
-  }, [products, searchTerm, sortBy, filterByStock])
+  }, [products, searchTerm, sortBy, filterByStock, selectedCategories, priceRange])
+
+  const clearAllFilters = () => {
+    setSearchTerm("")
+    setSortBy("name")
+    setFilterByStock("all")
+    setSelectedCategories([])
+    setPriceRange(productPriceRange)
+  }
+
+  // Sidebar Filter Component
+  const FilterSidebar = ({ isMobile = false }) => (
+    <div className={`bg-[#B8A394] ${isMobile ? 'p-4' : 'p-6'} ${isMobile ? '' : 'sticky top-4'} h-fit`}>
+      {isMobile && (
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
+          <button
+            onClick={() => setShowMobileFilters(false)}
+            className="p-1 hover:bg-[#A69080] rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-700" />
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-6">
+        {/* Search Section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Search</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-[#D4C4B8] border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B7355] text-gray-800 placeholder-gray-600"
+            />
+          </div>
+        </div>
+
+        {/* Categories Section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Categories</label>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {availableCategories.map((category) => (
+              <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(category)}
+                  onChange={() => handleCategoryToggle(category)}
+                  className="w-4 h-4 text-[#8B7355] bg-[#D4C4B8] border-[#A69080] rounded focus:ring-[#8B7355] focus:ring-2"
+                />
+                <span className="text-sm text-gray-700 capitalize">{category}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Price Range Section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Price Range</label>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-gray-600">Min Price</label>
+                <input
+                  type="number"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: Math.max(0, Number(e.target.value)) }))}
+                  className="w-full px-3 py-1 bg-[#D4C4B8] border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B7355] text-gray-800 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-600">Max Price</label>
+                <input
+                  type="number"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+                  className="w-full px-3 py-1 bg-[#D4C4B8] border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B7355] text-gray-800 text-sm"
+                />
+              </div>
+            </div>
+            <input
+              type="range"
+              min={productPriceRange.min}
+              max={productPriceRange.max}
+              value={priceRange.max}
+              onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+              className="w-full h-2 bg-[#D4C4B8] rounded-lg appearance-none cursor-pointer slider"
+            />
+            <div className="flex justify-between text-xs text-gray-600">
+              <span>Rs.{productPriceRange.min.toLocaleString()}</span>
+              <span>Rs.{productPriceRange.max.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stock Filter Section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Stock Status</label>
+          <div className="space-y-2">
+            {[
+              { value: "all", label: "All Products" },
+              { value: "in-stock", label: "In Stock Only" },
+              { value: "low-stock", label: "Low Stock (≤5)" }
+            ].map((option) => (
+              <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="stockFilter"
+                  value={option.value}
+                  checked={filterByStock === option.value}
+                  onChange={(e) => setFilterByStock(e.target.value as any)}
+                  className="w-4 h-4 text-[#8B7355] bg-[#D4C4B8] border-[#A69080] focus:ring-[#8B7355] focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Clear Filters Button */}
+        <button
+          onClick={clearAllFilters}
+          className="w-full px-4 py-2 bg-[#8B7355] text-white hover:bg-[#7A6449] transition-colors text-sm font-medium rounded-md"
+        >
+          Clear All Filters
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <>
       <style jsx global>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;  /* Internet Explorer 10+ */
-          scrollbar-width: none;  /* Firefox */
-        }
-        .scrollbar-hide::-webkit-scrollbar { 
-          display: none;  /* Safari and Chrome */
-        }
-        
-        /* Apply to all elements with horizontal scroll */
-        * {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-        *::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
+          html, body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+          }
+          
+          * {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+            box-sizing: border-box !important;
+          }
+          
+          *::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+          
+          *::-webkit-scrollbar-track {
+            display: none !important;
+          }
+          
+          *::-webkit-scrollbar-thumb {
+            display: none !important;
+          }
+          
+          .scrollbar-hide {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+            overflow-x: hidden !important;
+          }
+          
+          .scrollbar-hide::-webkit-scrollbar { 
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+        `}</style>
 
-      <div className={`min-h-screen bg-[#CCB8AD] ${kalnia.className} scrollbar-hide`}>
+      <div className={`min-h-screen bg-[#CCB8AD] ${Instrument.className} scrollbar-hide`}>
+        <div className="sticky top-0 z-50">
         <Navbar />
+        </div>
 
         <main className="container mx-auto scrollbar-hide">
           {/* Hero Section */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-5">
             <Hero />
           </div>
 
-          <div className="mb-3 sm:mb-5 md:mb-8 lg:mb-10">
+          <div className="mb-2 sm:mb-2 md:mb-3 lg:mb-4">
             <NewArrival />
           </div>
 
@@ -128,151 +313,113 @@ export default function Home() {
             <Categories />
           </div>
 
-          <div className="w-full flex justify-between px-5 sm:px-5 md:px-7 lg:px-8 mb-6 items-center">
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-gray-800">Our Products</h2>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex gap-4 items-center hover:opacity-80 transition-opacity"
-            >
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-gray-800">Filter</h2>
-              <img className="w-5 sm:w-5 md:w-7 lg:w-9 h-6 sm:h-7 md:h-8 lg:h-10" src="/stroke.png" alt="" />
-            </button>
-          </div>
+          {/* Main Content Area with Sidebar */}
+          <div className="flex gap-6 px-4 sm:px-5 md:px-7 lg:px-8">
+            {/* Desktop Sidebar - Hidden on mobile */}
+            <aside className="hidden lg:block w-80 flex-shrink-0">
+              <FilterSidebar />
+            </aside>
 
-          {showFilters && (
-            <div className="mx-5 mb-6 bg-[#B8A394]  p-6 shadow-lg border border-[#A69080]">
-              <div className="flex justify-end items-center mb-4">
-              
-                <button
-                  onClick={() => setShowFilters(false)}
-                  className="p-1 hover:bg-[#A69080] rounded-full transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-700" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Search Section */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Search Products</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Search by name or description..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-[#D4C4B8] border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B7355] text-gray-800 placeholder-gray-600"
-                    />
-                  </div>
+            {/* Main Products Area */}
+            <div className="flex-1">
+              {/* Header with Sort and Mobile Filter Button */}
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-800">
+                    Our Products
+                  </h2>
+                  <span className="text-sm text-gray-600">
+                    ({filteredAndSortedProducts.length} products)
+                  </span>
                 </div>
 
-                {/* Sort Section */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Sort By</label>
-                  <div className="relative">
+                <div className="flex items-center gap-4">
+                  {/* Sort Dropdown */}
+                  <div className="hidden sm:block">
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as any)}
-                      className="w-full px-4 py-2 bg-[#D4C4B8] border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B7355] text-gray-800 appearance-none cursor-pointer"
+                      className="px-4 py-2 bg-[#B8A394] border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B7355] text-gray-800 text-sm"
                     >
-                      <option value="name">Name (A-Z)</option>
-                      <option value="price-low">Price (Low to High)</option>
-                      <option value="price-high">Price (High to Low)</option>
+                      <option value="name">Sort by Name</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="price-high">Price: High to Low</option>
                       <option value="stock">Stock Level</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
                   </div>
-                </div>
 
-                {/* Stock Filter Section */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Stock Status</label>
-                  <div className="relative">
-                    <select
-                      value={filterByStock}
-                      onChange={(e) => setFilterByStock(e.target.value as any)}
-                      className="w-full px-4 py-2 bg-[#D4C4B8] border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B7355] text-gray-800 appearance-none cursor-pointer"
-                    >
-                      <option value="all">All Products</option>
-                      <option value="in-stock">In Stock Only</option>
-                      <option value="low-stock">Low Stock (≤5)</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
-                  </div>
+                  {/* Mobile Filter Button */}
+                  <button
+                    onClick={() => setShowMobileFilters(!showMobileFilters)}
+                    className="lg:hidden flex items-center gap-2 px-4 py-2 bg-[#B8A394] border border-[#A69080] rounded-md hover:bg-[#A69080] transition-colors"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    <span className="text-sm">Filters</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Clear Filters Button */}
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={() => {
-                    setSearchTerm("")
-                    setSortBy("name")
-                    setFilterByStock("all")
-                  }}
-                  className="px-4 py-2 bg-[#8B7355] text-white  hover:bg-[#7A6449] transition-colors text-sm font-medium"
-                >
-                  Clear All Filters
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Loading State */}
-          {loading && (
-            <div className="text-center">
-              <div className="px-4 sm:px-5 md:px-7 lg:px-8 inline-grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
-                {/* Render 8 skeleton loaders while fetching data */}
-                {Array.from({ length: 8 }).map((_, index) => (
-                  <ProductSkeleton key={index} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && !loading && (
-            <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
-              <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
-              <h3 className="mt-2 text-lg font-medium text-red-800">Could not fetch products</h3>
-              <p className="mt-1 text-sm text-red-700">{error}</p>
-              <button
-                onClick={handleRetry}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Try Again
-              </button>
-            </div>
-          )}
-
-          {/* Product Grid - Renders when not loading, no error, and products exist */}
-          {!loading && !error && filteredAndSortedProducts.length > 0 && (
-            // Add a parent div with text-center to center the inline-grid
-            <div className="text-center">
-              <div className="px-4 sm:px-5 md:px-7 lg:px-8 inline-grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
-                {filteredAndSortedProducts.map((product) => (
-                  <div key={product._id} className="text-left">
-                    {" "}
-                    {/* Wrapper to reset text-align for card content */}
-                    <ProductCard product={product} />
+              {/* Mobile Filter Overlay */}
+              {showMobileFilters && (
+                <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+                  <div className="absolute right-0 top-0 h-full w-80 bg-white overflow-y-auto">
+                    <FilterSidebar isMobile={true} />
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+              )}
 
-          {/* No Products Available State */}
-          {!loading && !error && filteredAndSortedProducts.length === 0 && (
-            <div className=" h-[50vh] justify-items-center  text-center py-10 px-4  ">
-              <Package className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-lg font-medium text-gray-800">No Products Found</h3>
-              <p className="mt-1 text-sm text-gray-600">
-                We couldn't find any products matching your search or filters.
-              </p>
+              {/* Loading State */}
+              {loading && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <ProductSkeleton key={index} />
+                  ))}
+                </div>
+              )}
+
+              {/* Error State */}
+              {error && !loading && (
+                <div className="text-center py-10 px-4 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
+                  <h3 className="mt-2 text-lg font-medium text-red-800">Could not fetch products</h3>
+                  <p className="mt-1 text-sm text-red-700">{error}</p>
+                  <button
+                    onClick={handleRetry}
+                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again
+                  </button>
+                </div>
+              )}
+
+              {/* Product Grid */}
+              {!loading && !error && filteredAndSortedProducts.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {filteredAndSortedProducts.map((product) => (
+                    <ProductCard key={product._id} product={product} />
+                  ))}
+                </div>
+              )}
+
+              {/* No Products Found */}
+              {!loading && !error && filteredAndSortedProducts.length === 0 && (
+                <div className="text-center py-20">
+                  <Package className="mx-auto h-16 w-16 text-gray-400" />
+                  <h3 className="mt-4 text-xl font-medium text-gray-800">No Products Found</h3>
+                  <p className="mt-2 text-gray-600">
+                    Try adjusting your filters or search terms
+                  </p>
+                  <button
+                    onClick={clearAllFilters}
+                    className="mt-4 px-6 py-2 bg-[#8B7355] text-white hover:bg-[#7A6449] transition-colors rounded-md"
+                  >
+                    Clear All Filters
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </main>
       </div>
     </>
