@@ -86,7 +86,7 @@ const Navbar: React.FC = () => {
           : 'bg-black/20 '
       }`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12 lg:h-20">
+          <div className="flex justify-between items-center h-12 lg:h-16">
             {/* Left side - Menu button */}
             <div className="flex-1 flex justify-start">
               <button

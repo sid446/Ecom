@@ -90,7 +90,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
       {/* Product Details */}
       <div className="px-2 py-1">
-        <h3 className="text-xs font-medium text-gray-800 line-clamp-2">
+        <h3 className="text-xs font-medium text-gray-300 line-clamp-2">
           {product.name}
         </h3>
 
@@ -99,7 +99,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <p className="text-xs text-gray-500 font-semibold line-through">
             Rs.{Math.round(product.price * 1.66).toLocaleString()} {/* Example for 40% off calculation */}
           </p>
-          <p className="text-xs font-medium text-gray-900">
+          <p className="text-xs font-medium text-gray-400">
             Rs.{product.price.toLocaleString()}
           </p>
         </div>

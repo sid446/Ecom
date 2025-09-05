@@ -48,7 +48,7 @@
                 `}</style>
                 
                 {/* Header */}
-                <h2 className="text-2xl text-center sm:text-2xl md:text-3xl lg:text:text-4xl  text-gray-800  font-semibold mb-5 sm:mb-5 lg:mb-10">
+                <h2 className="text-2xl text-center sm:text-2xl md:text-3xl lg:text:text-4xl  text-white  font-semibold mb-5 sm:mb-5 lg:mb-10">
                     New Arrivals
                 </h2>
                             
@@ -58,7 +58,7 @@
                         {items.map((item) => (
                             <div 
                                 key={item.id}
-                                className="flex-shrink-0 w-30 sm:w-30 md:w-60 lg:w-70 transition-shadow duration-300 overflow-hidden"
+                                className="flex-shrink-0 w-30 sm:w-30 md:w-60 lg:w-70 transition-shadow duration-300  overflow-hidden"
                             >
                                 {/* Product Image */}
                                 <div className="w-full h-40 sm:h-40 md:h-70 lg:h-90  bg-gray-200 flex items-center justify-center overflow-hidden">
@@ -74,10 +74,10 @@
                                                 
                                 {/* Product Details */}
                                 <div className="px-2 py-3">
-                                    <h3 className="text-sm font-medium text-gray-800  line-clamp-2">
+                                    <h3 className="text-sm font-medium text-gray-300  line-clamp-2">
                                         {item.title}
                                     </h3>
-                                    <p className="text-sm font-semibold text-gray-900">
+                                    <p className="text-sm font-semibold text-gray-400">
                                         {item.price}
                                     </p>
                                 </div>

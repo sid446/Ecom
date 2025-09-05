@@ -113,8 +113,9 @@ export default function Cart() {
                 >
                   <div className="relative w-20 h-20 mr-6 flex-shrink-0">
                     <Image
-                      src={item.image || "/placeholder.svg"}
+                      src={item.imagefront|| "/placeholder.svg"}
                       alt={item.name}
+                      
                       fill
                       className="object-cover rounded-lg"
                       sizes="80px"
