@@ -53,11 +53,11 @@ function Categories() {
                                                    
             {/* Horizontally Scrollable Container */}
             <div className="overflow-x-auto scrollbar-hide">
-                <div className="flex flex-col sm:flex-col md:flex-row lg:flex-row gap-2 sm:gap-3 md:gap-4 pb-4 min-w-max">
+                <div className="flex flex-col sm:flex-col md:flex-row lg:flex-row gap-2 sm:gap-3 md:gap-3 pb-4 min-w-max">
                     {items.map((item) => (
                         <div 
                             key={item.id}
-                            className="flex-shrink-0 w-full sm:w-full md:w-80 lg:w-121 text-black transition-all duration-300 overflow-hidden group cursor-pointer hover:shadow-xl"
+                            className="flex-shrink-0 w-full sm:w-full md:w-80 lg:w-120 text-black transition-all duration-300 overflow-hidden group cursor-pointer hover:shadow-xl"
                         >
                             {/* Product Image Container with Relative Positioning */}
                             <div className="relative w-full h-80 sm:h-80 md:h-110 lg:h-140 bg-gray-200 flex items-center justify-center overflow-hidden rounded-lg">

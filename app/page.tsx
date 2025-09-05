@@ -344,10 +344,9 @@ export default function Home() {
           }
           
           .scrollbar-hide {
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-            overflow-x: hidden !important;
-          }
+    -ms-overflow-style: none !important; /* Good - Hides scrollbar on IE/Edge */
+    scrollbar-width: none !important;   /* Good - Hides scrollbar on Firefox */
+}
           
           .scrollbar-hide::-webkit-scrollbar { 
             display: none !important;
@@ -367,7 +366,7 @@ export default function Home() {
             <Hero />
           </div>
 
-          <div className="mb-2 sm:mb-2 md:mb-3 lg:mb-0">
+          <div className="mb-2 sm:mb-2 md:mb-3 lg:mb-0 ">
             <NewArrival />
           </div>
 
