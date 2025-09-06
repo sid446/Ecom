@@ -9,6 +9,7 @@ import ProductSkeleton from "@/components/ProductSkeleton"
 import Hero from "@/components/Hero"
 import NewArrival from "@/components/NewArrival"
 import Categories from "@/components/Categories"
+import PremiumFooter from "@/components/Footer"
 
 const Instrument = Instrument_Sans({
   subsets: ["latin"],
@@ -493,8 +494,11 @@ export default function Home() {
                   </button>
                 </div>
               )}
+             
             </div>
+             
           </div>
+           <PremiumFooter/>
         </main>
       </div>
     </>

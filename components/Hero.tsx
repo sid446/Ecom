@@ -196,10 +196,16 @@ function Hero() {
         ))}
       </div>
 
+      {/* Top Gradient Overlay */}
+      <div className='absolute top-0 left-0 w-full h-32 md:h-50 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none z-10'></div>
+      
+      {/* Bottom Gradient Overlay */}
+      <div className='absolute bottom-0 left-0 w-full h-32 md:h-40 bg-gradient-to-t from-black/70 via-black/50 to-transparent pointer-events-none z-10'></div>
+
       {/* Navigation Arrows - Hidden on mobile for better swipe experience */}
       <button
         onClick={prevSlide}
-        className='hidden md:block absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm'
+        className='hidden md:block absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm z-20'
         aria-label="Previous slide"
       >
         <img className='w-4 h-4' src="./left.png" alt="" />
@@ -207,14 +213,14 @@ function Hero() {
 
       <button
         onClick={nextSlide}
-        className='hidden md:block absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm'
+        className='hidden md:block absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm z-20'
         aria-label="Next slide"
       >
         <img className='w-4 h-4' src="./next.png" alt="" />
       </button>
 
       {/* Dot Indicators */}
-      <div className='absolute bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3'>
+      <div className='absolute bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20'>
         {data.map((_, index) => (
           <button
             key={index}
