@@ -4,7 +4,7 @@ function PremiumFooter() {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
       setIsSubscribed(true);
