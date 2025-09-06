@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
       <nav className={`w-full fixed top-0 z-50 transition-all duration-300 ${
         isScrolled 
           ? 'bg-black/95 backdrop-blur-md shadow-lg' 
-          : 'bg-black/20 '
+          : 'bg-black/0 '
       }`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-12 lg:h-16">
