@@ -43,10 +43,10 @@ function Categories() {
                 <div className="mb-4">
                     
                 </div>
-                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-white font-bold mb-3">
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-black font-bold mb-3">
                     Shop by Categories
                 </h2>
-                <p className="text-gray-200 text-xs sm:text-sm md:text-base max-w-2xl mx-auto px-2">
+                <p className="text-gray-700 text-xs sm:text-sm md:text-base max-w-2xl mx-auto px-2">
                     Discover our carefully curated collection of premium apparel, designed for comfort and style
                 </p>
             </div>

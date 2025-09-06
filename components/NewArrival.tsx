@@ -48,7 +48,7 @@ function NewArrival() {
             `}</style>
             
             {/* Header */}
-            <h2 className="text-2xl text-center sm:text-2xl md:text-3xl lg:text:text-4xl  text-white  font-semibold mb-5 sm:mb-5 lg:mb-10">
+            <h2 className="text-2xl text-center sm:text-2xl md:text-3xl lg:text:text-4xl  text-black  font-semibold mb-5 sm:mb-5 lg:mb-10">
                 New Arrivals
             </h2>
                         
@@ -74,10 +74,10 @@ function NewArrival() {
                                             
                             {/* Product Details */}
                             <div className="px-2 py-3">
-                                <h3 className="text-sm font-medium text-gray-300  line-clamp-2">
+                                <h3 className="text-sm font-medium text-gray-700  line-clamp-2">
                                     {item.title}
                                 </h3>
-                                <p className="text-sm font-semibold text-gray-400">
+                                <p className="text-sm font-semibold text-gray-800">
                                     {item.price}
                                 </p>
                             </div>

@@ -268,7 +268,7 @@ export default function Home() {
                   value={priceRange.max}
                   onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
                   style={rangeStyle}
-                  className="w-full h-2 bg-white rounded-lg appearance-none cursor-pointer custom-range"
+                  className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer custom-range"
                 />
                 <div className="flex justify-between text-xs text-gray-600">
                   <span>Rs.{productPriceRange.min.toLocaleString()}</span>
@@ -355,7 +355,7 @@ export default function Home() {
           }
         `}</style>
 
-      <div className={`min-h-screen bg-black ${Instrument.className} scrollbar-hide`}>
+      <div className={`min-h-screen bg-white ${Instrument.className} scrollbar-hide`}>
         <div className="sticky top-0 z-50">
           <Navbar />
         </div>
@@ -388,7 +388,7 @@ export default function Home() {
               {/* Header with Sort and Filter Button */}
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-white">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-black">
                     Our Products
                   </h2>
                   <span className="text-sm text-gray-400">
@@ -454,7 +454,7 @@ export default function Home() {
                   <p className="mt-1 text-sm text-red-700">{error}</p>
                   <button
                     onClick={handleRetry}
-                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
+                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-red-600 hover:bg-red-700"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Try Again
@@ -487,7 +487,7 @@ export default function Home() {
                   </p>
                   <button
                     onClick={clearAllFilters}
-                    className="mt-4 px-6 py-2 bg-[#8B7355] text-white hover:bg-[#7A6449] transition-colors rounded-md"
+                    className="mt-4 px-6 py-2 bg-[#8B7355] text-black hover:bg-[#7A6449] transition-colors rounded-md"
                   >
                     Clear All Filters
                   </button>
