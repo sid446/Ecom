@@ -368,7 +368,7 @@ export default function Home() {
           </div>
 
           <div className="mb-2 sm:mb-2 md:mb-3 lg:mb-0 ">
-            <NewArrival />
+            <NewArrival  products={products} />
           </div>
 
           <div className="mb-5 sm:mb-5 md:mb-8 lg:mb-10">

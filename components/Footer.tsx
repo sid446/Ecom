@@ -62,7 +62,7 @@ function PremiumFooter() {
               <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">All Products</a></li>
               <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">New Arrivals</a></li>
               <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Clothing</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Accessories</a></li>
+              
               <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Best Sellers</a></li>
             </ul>
           </div>
@@ -96,14 +96,7 @@ function PremiumFooter() {
 
           {/* Connect */}
           <div>
-            <h3 className="text-xs sm:text-sm font-medium tracking-wider mb-4 sm:mb-6 text-gray-300">
-              CONNECT
-            </h3>
-            <ul className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Newsletter</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Gift Cards</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Collaborations</a></li>
-            </ul>
+            
             
             {/* Social Media Icons */}
             <div>
