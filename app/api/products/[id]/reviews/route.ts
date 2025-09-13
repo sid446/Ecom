@@ -11,12 +11,12 @@ import mongoose from 'mongoose';
  */
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
     
-    const productId = context.params.id;
+    const productId = params.id;
     const body = await request.json();
 
     const { rating, comment, email } = body;
@@ -71,33 +71,22 @@ export async function POST(
       return NextResponse.json({ message: 'You have already reviewed this product' }, { status: 400 });
     }
 
-    // --- 6. Add the new review directly to the array ---
-    // Mongoose will handle the creation of the sub-document with the correct _id.
-    // --- 6. Add the new review using create() method ---
-   // --- 6. Add the new review directly to the array ---
-product.reviews.push({
-  user: user._id,
-  name: user.name || 'Verified Purchaser',
-  rating: Number(rating),
-  comment: comment.trim(),
-} as any);
+    // --- 6. Add the new review ---
+    // The Mongoose pre-save middleware will handle the rating and review count.
+    product.reviews.push({
+      user: user._id,
+      name: user.name || 'Verified Purchaser',
+      rating: Number(rating),
+      comment: comment.trim(),
+    } as any);
 
-// --- 7. Save the product (rating will be calculated automatically by pre-save middleware) ---
-await product.save();
-
-    // --- 7. Update the product's overall rating ---
-    product.numOfReviews = product.reviews.length;
-    
-    product.rating = product.reviews.length > 0
-      ? product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length
-      : 0;
-
+    // --- 7. Save the updated product ---
     await product.save();
 
     return NextResponse.json({ message: 'Review added successfully!' }, { status: 201 });
 
   } catch (error) {
-    console.error(`Failed to add review for product ${context.params.id}:`, error);
+    console.error(`Failed to add review for product ${params.id}:`, error);
     return NextResponse.json({ message: 'Failed to add review' }, { status: 500 });
   }
 }
