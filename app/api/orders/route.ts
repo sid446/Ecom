@@ -8,16 +8,16 @@ export async function POST(request: NextRequest) {
     await connectToDatabase()
     const { customerInfo, orderItems, totalPrice, shippingAddress, subtotal, shipping, tax, paymentMethod } = await request.json()
 
-    // Create or find user
+    // --- Create or find user ---
     let user = await User.findOne({ email: customerInfo.email })
     
     if (!user) {
-      // Create new user
+      // Create new user if they don't exist
       user = new User({
         name: customerInfo.name,
         email: customerInfo.email,
         phone: customerInfo.phone,
-        password: 'temp_password_' + Date.now(), // Temporary password
+        password: 'temp_password_' + Date.now(), // Create a temporary placeholder password
         address: {
           street: shippingAddress.address,
           city: shippingAddress.city,
@@ -28,7 +28,9 @@ export async function POST(request: NextRequest) {
       await user.save()
     }
 
-    // Create order
+    // --- Create the order ---
+    // The `orderItems` array from the request should now include the `size` property.
+    // Mongoose will automatically map it based on the updated schema.
     const order = new Order({
       user: user._id,
       orderItems,
@@ -42,12 +44,11 @@ export async function POST(request: NextRequest) {
 
     await order.save()
     
-    // Populate user info in response
+    // Populate user info in the response
     await order.populate('user', 'name email phone')
     
-    // ⭐⭐⭐ ADD EMAIL CONFIRMATION CODE HERE ⭐⭐⭐
+    // --- Send order confirmation email ---
     try {
-      // Send order confirmation email
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
       const emailResponse = await fetch(`${baseUrl}/api/send-order-confirmation`, {
@@ -58,11 +59,12 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           customerEmail: customerInfo.email,
           customerName: customerInfo.name,
-          orderId: order._id.toString(),
+          orderId: order.orderId, // Using the custom orderId for the email
           orderDate: order.createdAt,
           orderItems: orderItems.map((item: any) => ({
             name: item.name,
             quantity: item.quantity,
+            size: item.selectedSize, // <-- Updated this line to include size in the email
             price: item.price,
             image: item.image,
           })),
@@ -88,9 +90,9 @@ export async function POST(request: NextRequest) {
       }
     } catch (emailError) {
       console.error('Error sending confirmation email:', emailError)
-      // Don't fail the order creation if email fails
+      // We don't want to fail the entire order creation if the email fails to send
     }
-    // ⭐⭐⭐ END OF EMAIL CONFIRMATION CODE ⭐⭐⭐
+    // --- End of email confirmation code ---
 
     return NextResponse.json(order, { status: 201 })
   } catch (error: any) {

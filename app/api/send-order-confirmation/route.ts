@@ -1,226 +1,184 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 
+// Define a type for the order items for better type safety
+interface OrderItem {
+  name: string;
+  quantity: number;
+  size: string;
+  price: number;
+  image: string;
+}
+
 export async function POST(request: NextRequest) {
-  console.log('🚀 Send Order Confirmation API called')
+  console.log('🚀 Send Order Confirmation API called');
   
   try {
-    const body = await request.json()
+    const body = await request.json();
     const { 
       customerEmail, 
       customerName, 
       orderId, 
       orderDate, 
       orderItems, 
-      totalAmount, 
-      shippingAddress 
-    } = body
+      totalAmount,
+      subtotal,
+      shipping,
+      tax,
+      shippingAddress,
+      paymentMethod
+    } = body;
 
-    console.log('📧 Sending order confirmation to:', customerEmail)
+    console.log('📧 Preparing to send order confirmation to:', customerEmail);
 
     if (!customerEmail) {
       return NextResponse.json(
         { message: 'Customer email is required' },
         { status: 400 }
-      )
+      );
     }
 
-    // Check environment variables
-    const hasEmailUser = !!process.env.EMAIL_USER
-    const hasEmailPass = !!process.env.EMAIL_PASS
-    const nodeEnv = process.env.NODE_ENV
-    
-    console.log('⚙️ Environment check:', {
-      hasEmailUser,
-      hasEmailPass,
-      nodeEnv
-    })
+    const hasEmailUser = !!process.env.EMAIL_USER;
+    const hasEmailPass = !!process.env.EMAIL_PASS;
 
-    // Development mode - skip actual email sending
-    if (nodeEnv !== 'production' && (!hasEmailUser || !hasEmailPass)) {
-      console.log('🔧 Development mode - Order confirmation would be sent to:', customerEmail)
+    // In development, if email credentials are not set, we can skip sending the actual email.
+    if (process.env.NODE_ENV !== 'production' && (!hasEmailUser || !hasEmailPass)) {
+      console.log('🔧 Development mode: Skipping actual email dispatch. Order confirmation would be sent to:', customerEmail);
       return NextResponse.json({ 
-        message: 'Order confirmation email prepared (development mode)',
-        debug: {
-          customerEmail,
-          orderId,
-          environment: nodeEnv,
-          emailConfigured: hasEmailUser && hasEmailPass
-        }
-      })
+        message: 'Order confirmation email prepared (development mode - not sent)',
+      });
     }
 
-    // Production mode - send email
+    // In production, email credentials are required.
     if (!hasEmailUser || !hasEmailPass) {
-      console.error('❌ Email credentials missing')
+      console.error('❌ Email service credentials are not configured on the server.');
       return NextResponse.json(
-        { message: 'Email service not configured' },
+        { message: 'Email service is not configured.' },
         { status: 500 }
-      )
+      );
     }
 
-    try {
-      console.log('📤 Attempting to send order confirmation email...')
-      
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-        debug: true,
-        logger: true
-      })
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-      // Verify transporter
-      console.log('🔍 Verifying email transporter...')
-      await transporter.verify()
-      console.log('✅ Email transporter verified')
+    // Verify connection configuration
+    await transporter.verify();
+    console.log('✅ Email transporter verified and ready to send.');
 
-      // Format order items for email
-      const itemsHtml = orderItems.map((item: any) => `
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">
-            <img src="${item.image}" alt="${item.name}" width="60" style="border-radius: 4px;" />
-          </td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
-        </tr>
-      `).join('')
+    // Format order items for the HTML email
+    const itemsHtml = orderItems.map((item: OrderItem) => `
+      <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #374151;">
+          <img src="${item.image}" alt="${item.name}" width="60" style="border-radius: 8px;" />
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #374151; color: #d1d5db;">
+          ${item.name}
+          <br>
+          <small style="color: #9ca3af;">Size: ${item.size}</small>
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #374151; text-align: center; color: #d1d5db;">${item.quantity}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #374151; text-align: right; color: #d1d5db;">₹${(item.price * item.quantity).toLocaleString()}</td>
+      </tr>
+    `).join('');
 
-      const mailOptions = {
-        from: {
-          name: 'Your Store',
-          address: process.env.EMAIL_USER!
-        },
-        to: customerEmail,
-        subject: `Order Confirmation #${orderId}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
-            <div style="background-color: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-              <div style="text-align: center; margin-bottom: 24px;">
-                <h1 style="color: #2563eb; margin: 0 0 8px 0;">Order Confirmed!</h1>
-                <p style="color: #6b7280; margin: 0;">Thank you for your purchase, ${customerName}!</p>
+    const mailOptions = {
+      from: {
+        name: 'KASHÉ',
+        address: process.env.EMAIL_USER!
+      },
+      to: customerEmail,
+      subject: `Your KASHÉ Order is Confirmed (#${orderId})`,
+      html: `
+        <div style="font-family: Arial, sans-serif; background-color: #000000; color: #d1d5db; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #111827; border-radius: 8px; padding: 24px; border: 1px solid #374151;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <h1 style="color: #ffffff; margin: 0 0 8px 0; font-size: 28px; font-weight: bold;">Order Confirmed</h1>
+              <p style="color: #9ca3af; margin: 0;">Hi ${customerName}, thank you for your purchase!</p>
+            </div>
+            
+            <div style="background-color: #1f2937; padding: 16px; border-radius: 6px; margin-bottom: 24px; text-align: center;">
+              <p style="margin: 0; color: #d1d5db; font-weight: 500;">
+                Order ID: <span style="color: #ffffff;">${orderId}</span>
+              </p>
+              <p style="margin: 4px 0 0 0; color: #9ca3af; font-size: 14px;">
+                Order Date: ${new Date(orderDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+            </div>
+            
+            <h2 style="color: #ffffff; margin-bottom: 16px; font-size: 20px;">Order Summary</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+              <thead>
+                <tr style="background-color: #1f2937;">
+                  <th colspan="2" style="padding: 12px; text-align: left; border-bottom: 2px solid #374151; color: #9ca3af; font-weight: normal;">Product</th>
+                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid #374151; color: #9ca3af; font-weight: normal;">Qty</th>
+                  <th style="padding: 12px; text-align: right; border-bottom: 2px solid #374151; color: #9ca3af; font-weight: normal;">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
+
+            <div style="padding-top: 16px; border-top: 1px solid #374151;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="color: #9ca3af;">Subtotal:</span>
+                  <span style="color: #d1d5db;">₹${subtotal.toLocaleString()}</span>
               </div>
-              
-              <div style="background-color: #f3f4f6; padding: 16px; border-radius: 6px; margin-bottom: 24px;">
-                <p style="margin: 0; color: #374151; font-weight: 500;">
-                  Order #: ${orderId}<br>
-                  Order Date: ${new Date(orderDate).toLocaleDateString()}
-                </p>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="color: #9ca3af;">Shipping:</span>
+                  <span style="color: #d1d5db;">${shipping === 0 ? 'Free' : `₹${shipping.toLocaleString()}`}</span>
               </div>
-              
-              <h2 style="color: #374151; margin-bottom: 16px;">Order Details</h2>
-              <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-                <thead>
-                  <tr style="background-color: #f9fafb;">
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid #eee;">Product</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 2px solid #eee;">Name</th>
-                    <th style="padding: 8px; text-align: center; border-bottom: 2px solid #eee;">Qty</th>
-                    <th style="padding: 8px; text-align: right; border-bottom: 2px solid #eee;">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${itemsHtml}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="3" style="padding: 12px; text-align: right; font-weight: bold; border-top: 2px solid #eee;">Total:</td>
-                    <td style="padding: 12px; text-align: right; font-weight: bold; border-top: 2px solid: #eee;">$${totalAmount.toFixed(2)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-              
-              <h2 style="color: #374151; margin-bottom: 16px;">Shipping Address</h2>
-              <div style="background-color: #f3f4f6; padding: 16px; border-radius: 6px; margin-bottom: 24px;">
-                <p style="margin: 0; color: #374151;">
-                  ${shippingAddress.address}<br>
-                  ${shippingAddress.city}, ${shippingAddress.postalCode}<br>
-                  ${shippingAddress.country}
-                </p>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                  <span style="color: #9ca3af;">Tax (GST):</span>
+                  <span style="color: #d1d5db;">₹${tax.toFixed(2)}</span>
               </div>
-              
-              <div style="text-align: center; color: #6b7280; font-size: 14px; padding-top: 16px; border-top: 1px solid #eee;">
-                <p style="margin: 0;">If you have any questions, please contact our support team.</p>
-                <p style="margin: 8px 0 0 0;">Thank you for shopping with us!</p>
+              <div style="display: flex; justify-content: space-between; padding-top: 16px; border-top: 2px solid #374151;">
+                  <span style="color: #ffffff; font-weight: bold; font-size: 18px;">Total:</span>
+                  <span style="color: #ffffff; font-weight: bold; font-size: 18px;">₹${totalAmount.toFixed(2)}</span>
               </div>
             </div>
+            
+            <h2 style="color: #ffffff; margin-top: 24px; margin-bottom: 16px; font-size: 20px;">Shipping To</h2>
+            <div style="background-color: #1f2937; padding: 16px; border-radius: 6px; margin-bottom: 24px; color: #d1d5db;">
+              <p style="margin: 0;">
+                ${shippingAddress.address}<br>
+                ${shippingAddress.city}, ${shippingAddress.postalCode}<br>
+                ${shippingAddress.country}
+              </p>
+            </div>
+            
+            <div style="text-align: center; color: #9ca3af; font-size: 14px; padding-top: 16px; border-top: 1px solid #374151;">
+              <p style="margin: 0;">Questions about your order? Email our support team at <a href="mailto:support@kashe.com" style="color: #ffffff; text-decoration: none;">support@kashe.com</a>.</p>
+              <p style="margin: 8px 0 0 0;">Thank you for shopping with KASHÉ!</p>
+            </div>
           </div>
-        `,
-        text: `
-Order Confirmation #${orderId}
+        </div>
+      `,
+    };
 
-Thank you for your purchase, ${customerName}!
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Order confirmation email sent successfully. Message ID:', info.messageId);
 
-Order Details:
-${orderItems.map((item: any) => `- ${item.name} (Qty: ${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`).join('\n')}
-
-Total: $${totalAmount.toFixed(2)}
-
-Shipping Address:
-${shippingAddress.address}
-${shippingAddress.city}, ${shippingAddress.postalCode}
-${shippingAddress.country}
-
-If you have any questions, please contact our support team.
-
-Thank you for shopping with us!
-        `
-      }
-
-      console.log('📧 Sending order confirmation email to:', customerEmail)
-      const info = await transporter.sendMail(mailOptions)
-      
-      console.log('✅ Order confirmation email sent successfully:', {
-        messageId: info.messageId,
-        accepted: info.accepted,
-        rejected: info.rejected
-      })
-
-      return NextResponse.json({ 
-        message: 'Order confirmation email sent successfully',
-        debug: {
-          messageId: info.messageId,
-          accepted: info.accepted,
-          rejected: info.rejected,
-          timestamp: new Date().toISOString()
-        }
-      })
-
-    } catch (emailError) {
-      console.error('❌ Order confirmation email sending failed:', {
-        message: emailError instanceof Error ? emailError.message : 'Unknown error',
-        code: (emailError as any)?.code,
-        command: (emailError as any)?.command,
-        response: (emailError as any)?.response
-      })
-
-      return NextResponse.json({ 
-        message: 'Order confirmation email failed - check logs',
-        error: emailError instanceof Error ? emailError.message : 'Unknown error',
-        debug: {
-          emailError: true,
-          errorCode: (emailError as any)?.code
-        }
-      }, { status: 500 })
-    }
+    return NextResponse.json({ 
+      message: 'Order confirmation email sent successfully',
+      messageId: info.messageId
+    });
 
   } catch (error) {
-    console.error('❌ API Error:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    })
+    console.error('❌ API Error in send-order-confirmation:', error);
     
     return NextResponse.json(
       { 
-        message: 'Internal server error',
-        debug: {
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }
+        message: 'Internal server error while sending email.',
+        error: error instanceof Error ? error.message : 'An unknown error occurred'
       },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -232,5 +190,5 @@ export async function OPTIONS() {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
-  })
+  });
 }

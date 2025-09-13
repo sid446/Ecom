@@ -6,6 +6,7 @@ const OrderSchema = new mongoose.Schema({
     required: true,
     unique: true,
     default: function() {
+      // Generates a unique, human-readable Order ID
       return 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase()
     }
   },
@@ -17,6 +18,7 @@ const OrderSchema = new mongoose.Schema({
   orderItems: [{
     name: { type: String, required: true },
     quantity: { type: Number, required: true },
+    size: { type: String, required: true }, // Added this line to store the product size
     image: { type: String, required: true },
     price: { type: Number, required: true },
     product: {

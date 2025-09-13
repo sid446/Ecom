@@ -1,12 +1,14 @@
 import React from 'react'
 import ProductCard from './ProductCard' // Adjust path as needed
+import ProductSkeleton from './ProductSkeleton' // Import your existing ProductSkeleton
 import { Product } from '@/types' // Adjust path as needed
 
 interface NewArrivalProps {
-  products: Product[] // Required prop to pass products
+    products: Product[] // Required prop to pass products
+    loading?: boolean // Optional loading prop
 }
 
-function NewArrival({ products }: NewArrivalProps) {
+function NewArrival({ products, loading = false }: NewArrivalProps) {
     return (
         <div className="w-full px-4 sm:px-4 md:px-7 lg:px-10 sm:py-4 md:py-6 lg:py-8">
             {/* Custom CSS for hiding scrollbar */}
@@ -25,24 +27,38 @@ function NewArrival({ products }: NewArrivalProps) {
                 New Arrivals
             </h2>
 
-            {/* Check if products exist */}
-            {products && products.length > 0 ? (
-                /* Horizontally Scrollable Container */
+            {/* Loading State - Show skeletons */}
+            {loading ? (
                 <div className="overflow-x-auto scrollbar-hide">
                     <div className="flex space-x-4 pb-4" style={{ minWidth: 'max-content' }}>
-                        {products.map((product) => (
-                            <ProductCard 
-                                key={product._id}
-                                product={product}
-                            />
+                        {Array.from({ length: 6 }).map((_, index) => (
+                            <div key={index} className="flex-shrink-0">
+                                <ProductSkeleton />
+                            </div>
                         ))}
                     </div>
                 </div>
             ) : (
-                /* No products message */
-                <div className="flex justify-center items-center h-40">
-                    <p className="text-gray-500 text-lg">No new arrivals available at the moment.</p>
-                </div>
+                /* Check if products exist */
+                products && products.length > 0 ? (
+                    /* Horizontally Scrollable Container */
+                    <div className="overflow-x-auto scrollbar-hide">
+                        <div className="flex space-x-4 pb-4" style={{ minWidth: 'max-content' }}>
+                            {products.map((product) => (
+                                <div key={product._id} className="flex-shrink-0">
+                                    <ProductCard 
+                                        product={product}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    /* No products message */
+                    <div className="flex justify-center items-center h-40">
+                        <p className="text-gray-500 text-lg">No new arrivals available at the moment.</p>
+                    </div>
+                )
             )}
         </div>
     )

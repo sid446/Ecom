@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import Navbar from "@/components/Navbar"
 import ProductCard from "@/components/ProductCard"
 import type { Product } from "@/types"
-import { Search, RefreshCw, AlertCircle, Package, X, ChevronDown, Filter, SlidersHorizontal } from "lucide-react"
+import { Search, RefreshCw, AlertCircle, Package, X, ChevronDown, Filter, SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react"
 import ProductSkeleton from "@/components/ProductSkeleton"
 import Hero from "@/components/Hero"
 import NewArrival from "@/components/NewArrival"
@@ -17,8 +17,20 @@ const Instrument = Instrument_Sans({
   variable: "--font-Instrument",
 })
 
+// Updated interface to match API response
+interface ProductsResponse {
+  data: Product[]
+  pagination: {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+  }
+}
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([]) // Store all products for filtering
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -29,27 +41,78 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [retryCount, setRetryCount] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 12, // Adjusted for better grid layout
+    totalPages: 0
+  })
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [currentPage])
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page: number = currentPage) => {
     try {
-      setLoading(true)
+      if (page === 1) {
+        setLoading(true)
+      } else {
+        setLoadingMore(true)
+      }
       setError(null)
 
-      const response = await fetch("/api/products")
+      const response = await fetch(`/api/products?page=${page}&limit=${pagination.limit}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
-      setProducts(data)
+      const data: ProductsResponse = await response.json()
+      
+      if (page === 1) {
+        setProducts(data.data)
+        setAllProducts(data.data)
+      } else {
+        // Append new products for "Load More" functionality
+        setProducts(prev => [...prev, ...data.data])
+        setAllProducts(prev => [...prev, ...data.data])
+      }
+      
+      setPagination(data.pagination)
       setRetryCount(0)
     } catch (error) {
       console.error("Error fetching products:", error)
+      setError(error instanceof Error ? error.message : "Failed to fetch products")
+      setRetryCount((prev) => prev + 1)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  // Fetch all products for client-side filtering (alternative approach)
+  const fetchAllProducts = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Fetch a large number or implement a separate endpoint for all products
+      const response = await fetch(`/api/products?page=1&limit=1000`)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data: ProductsResponse = await response.json()
+      setAllProducts(data.data)
+      setProducts(data.data)
+      setRetryCount(0)
+    } catch (error) {
+      console.error("Error fetching all products:", error)
       setError(error instanceof Error ? error.message : "Failed to fetch products")
       setRetryCount((prev) => prev + 1)
     } finally {
@@ -58,24 +121,42 @@ export default function Home() {
   }
 
   const handleRetry = () => {
-    fetchProducts()
+    fetchProducts(1)
+    setCurrentPage(1)
   }
 
-  // Get unique categories from products
-  const availableCategories = useMemo(() => {
-    const categories = products.map(product => product.category)
-    return [...new Set(categories)].filter(Boolean)
-  }, [products])
+  const handleLoadMore = () => {
+    if (currentPage < pagination.totalPages) {
+      const nextPage = currentPage + 1
+      setCurrentPage(nextPage)
+      fetchProducts(nextPage)
+    }
+  }
 
-  // Get price range from products
+  // Calculate stock total for filtering
+  const getStockTotal = (stock: any) => {
+    if (typeof stock === 'number') return stock
+    if (typeof stock === 'object' && stock !== null) {
+      return (stock.S || 0) + (stock.M || 0) + (stock.L || 0) + (stock.XL || 0)
+    }
+    return 0
+  }
+
+  // Get unique categories from all products
+  const availableCategories = useMemo(() => {
+    const categories = allProducts.map(product => product.category)
+    return [...new Set(categories)].filter(Boolean)
+  }, [allProducts])
+
+  // Get price range from all products
   const productPriceRange = useMemo(() => {
-    if (products.length === 0) return { min: 0, max: 10000 }
-    const prices = products.map(p => p.price)
+    if (allProducts.length === 0) return { min: 0, max: 10000 }
+    const prices = allProducts.map(p => p.price)
     return {
       min: Math.floor(Math.min(...prices) / 100) * 100,
       max: Math.ceil(Math.max(...prices) / 100) * 100
     }
-  }, [products])
+  }, [allProducts])
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories(prev =>
@@ -85,16 +166,18 @@ export default function Home() {
     )
   }
 
+  // Filter and sort products (now working with allProducts for client-side filtering)
   const filteredAndSortedProducts = useMemo(() => {
-    const filtered = products.filter((product) => {
+    const filtered = allProducts.filter((product) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
 
+      const stockTotal = getStockTotal(product.stock)
       const matchesStockFilter =
         filterByStock === "all" ||
-        (filterByStock === "in-stock" && product.stock > 0) ||
-        (filterByStock === "low-stock" && product.stock > 0 && product.stock <= 5)
+        (filterByStock === "in-stock" && stockTotal > 0) ||
+        (filterByStock === "low-stock" && stockTotal > 0 && stockTotal <= 5)
 
       const matchesCategory = 
         selectedCategories.length === 0 || selectedCategories.includes(product.category)
@@ -114,14 +197,14 @@ export default function Home() {
         case "price-high":
           return b.price - a.price
         case "stock":
-          return b.stock - a.stock
+          return getStockTotal(b.stock) - getStockTotal(a.stock)
         default:
           return 0
       }
     })
 
     return filtered
-  }, [products, searchTerm, sortBy, filterByStock, selectedCategories, priceRange])
+  }, [allProducts, searchTerm, sortBy, filterByStock, selectedCategories, priceRange])
 
   const clearAllFilters = () => {
     setSearchTerm("")
@@ -131,9 +214,13 @@ export default function Home() {
     setPriceRange(productPriceRange)
   }
 
+  // Initialize with all products for filtering
+  useEffect(() => {
+    fetchAllProducts()
+  }, [])
+
   // Sidebar Filter Component
   const FilterSidebar = ({ isMobile = false }) => {
-    // Custom styles for zinc-700 theme
     const checkboxStyle = {
       accentColor: 'black'
     };
@@ -345,8 +432,8 @@ export default function Home() {
           }
           
           .scrollbar-hide {
-    -ms-overflow-style: none !important; /* Good - Hides scrollbar on IE/Edge */
-    scrollbar-width: none !important;   /* Good - Hides scrollbar on Firefox */
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
 }
           
           .scrollbar-hide::-webkit-scrollbar { 
@@ -368,7 +455,7 @@ export default function Home() {
           </div>
 
           <div className="mb-2 sm:mb-2 md:mb-3 lg:mb-0 ">
-            <NewArrival  products={products} />
+            <NewArrival products={allProducts} loading={loading} />
           </div>
 
           <div className="mb-5 sm:mb-5 md:mb-8 lg:mb-10">
@@ -412,7 +499,7 @@ export default function Home() {
                     </select>
                   </div>
 
-                  {/* Filter Button - Now works for both mobile and desktop */}
+                  {/* Filter Button */}
                   <button
                     onClick={() => setShowFilters(!showFilters)}
                     className="flex items-center gap-2 px-4 py-2 bg-white/70 backdrop-blur-sm border border-[#A69080] rounded-md hover:bg-[#A69080] transition-colors"
@@ -455,7 +542,7 @@ export default function Home() {
                   <p className="mt-1 text-sm text-red-700">{error}</p>
                   <button
                     onClick={handleRetry}
-                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-red-600 hover:bg-red-700"
+                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Try Again
@@ -463,7 +550,7 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Product Grid - Fixed to be universally centered */}
+              {/* Product Grid */}
               {!loading && !error && filteredAndSortedProducts.length > 0 && (
                 <div className="w-full">
                   <div className={`grid gap-4 sm:gap-6 justify-items-center ${
@@ -475,6 +562,13 @@ export default function Home() {
                       <ProductCard key={product._id} product={product} />
                     ))}
                   </div>
+
+                  {/* Pagination Info */}
+                  {pagination.totalPages > 1 && (
+                    <div className="mt-8 text-center text-sm text-gray-600">
+                      Showing {filteredAndSortedProducts.length} of {pagination.total} products
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -488,17 +582,15 @@ export default function Home() {
                   </p>
                   <button
                     onClick={clearAllFilters}
-                    className="mt-4 px-6 py-2 bg-[#8B7355] text-black hover:bg-[#7A6449] transition-colors rounded-md"
+                    className="mt-4 px-6 py-2 bg-[#8B7355] text-white hover:bg-[#7A6449] transition-colors rounded-md"
                   >
                     Clear All Filters
                   </button>
                 </div>
               )}
-             
             </div>
-             
           </div>
-           <PremiumFooter/>
+          <PremiumFooter/>
         </main>
       </div>
     </>

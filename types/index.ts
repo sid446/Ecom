@@ -30,7 +30,8 @@ export interface User {
 
 export interface CartItem extends Product {
   quantity: number,
-  image: string
+  image: string,
+  selectedSize: string,
 }
 
 export interface OrderItem {
