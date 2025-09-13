@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs'
  * Interface representing a User document in MongoDB.
  */
 export interface IUser extends Document {
+  _id: mongoose.Types.ObjectId;
   email: string
   name?: string
   phone?: string

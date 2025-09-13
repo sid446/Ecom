@@ -11,12 +11,11 @@ import mongoose from 'mongoose';
  */
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string } } // UPDATED: Correct way to access params
+  context: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
     
-    // UPDATED: Get productId from context.params
     const productId = context.params.id;
     const body = await request.json();
 
@@ -40,7 +39,6 @@ export async function POST(
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
-      // If no user is found with that email, they couldn't have placed an order.
       return NextResponse.json({ message: 'No user found with this email address.' }, { status: 404 });
     }
 
@@ -48,13 +46,13 @@ export async function POST(
     const purchaseOrder = await Order.findOne({
       user: user._id,
       'orderItems.product': productId,
-      status: 'delivered', // Crucial check: only allow reviews for delivered orders
+      status: 'delivered',
     });
 
     if (!purchaseOrder) {
       return NextResponse.json(
         { message: 'You can only review products you have purchased and received.' },
-        { status: 403 } // 403 Forbidden
+        { status: 403 }
       );
     }
 
@@ -73,28 +71,30 @@ export async function POST(
       return NextResponse.json({ message: 'You have already reviewed this product' }, { status: 400 });
     }
 
-    // --- 6. Create and add the new review ---
-    const review = {
-      user: user._id,
-      name: user.name || 'Verified Purchaser', // Use the name from the DB
-      rating: Number(rating),
-      comment: comment.trim(),
-      createdAt: new Date(),
-    };
+    // --- 6. Add the new review directly to the array ---
+    // Mongoose will handle the creation of the sub-document with the correct _id.
+    // --- 6. Add the new review using create() method ---
+   // --- 6. Add the new review directly to the array ---
+product.reviews.push({
+  user: user._id,
+  name: user.name || 'Verified Purchaser',
+  rating: Number(rating),
+  comment: comment.trim(),
+} as any);
 
-    product.reviews.push(review);
+// --- 7. Save the product (rating will be calculated automatically by pre-save middleware) ---
+await product.save();
 
     // --- 7. Update the product's overall rating ---
     product.numOfReviews = product.reviews.length;
     
-    // Safely calculate the average rating to avoid division by zero
     product.rating = product.reviews.length > 0
       ? product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length
       : 0;
 
     await product.save();
 
-    return NextResponse.json({ message: 'Review added successfully!', review }, { status: 201 });
+    return NextResponse.json({ message: 'Review added successfully!' }, { status: 201 });
 
   } catch (error) {
     console.error(`Failed to add review for product ${context.params.id}:`, error);

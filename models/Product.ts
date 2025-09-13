@@ -5,7 +5,8 @@ import mongoose, { Document, Model, Schema } from 'mongoose'
  * Note: `user` is a reference to a User document's ObjectId.
  */
 export interface IReview extends Document {
-  user: mongoose.Schema.Types.ObjectId
+  _id: mongoose.Types.ObjectId
+  user: mongoose.Types.ObjectId 
   name: string
   rating: number
   comment: string
