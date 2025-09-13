@@ -150,57 +150,58 @@ export default function Checkout() {
   }
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    setLoading(true)
+    e.preventDefault()
+    
+    setLoading(true)
 
-    try {
-      const orderData = {
-        customerInfo: formData,
-        orderItems: cart.map(item => ({
-          product: item._id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          image: item.imagefront
-        })),
-        totalPrice: total,
-        subtotal,
-        shipping,
-        tax,
-        paymentMethod,
-        shippingAddress: {
-          address: formData.address,
-          city: formData.city,
-          postalCode: formData.postalCode,
-          country: formData.country,
-        },
-      }
+    try {
+      const orderData = {
+        customerInfo: formData,
+        orderItems: cart.map(item => ({
+          product: item._id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.imagefront,
+          // Add the selectedSize here
+          size: item.selectedSize, 
+        })),
+        totalPrice: total,
+        subtotal,
+        shipping,
+        tax,
+        paymentMethod,
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          country: formData.country,
+        },
+      }
 
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      })
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      })
 
-      if (response.ok) {
-        const order = await response.json()
-        clearCart()
-        router.push(`/order-confirmation/${order._id}`)
-      } else {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to place order')
-      }
-    } catch (error) {
-      console.error('Error placing order:', error)
-      setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order. Please try again.' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
+      if (response.ok) {
+        const order = await response.json()
+        clearCart()
+        router.push(`/order-confirmation/${order._id}`)
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to place order')
+      }
+    } catch (error) {
+      console.error('Error placing order:', error)
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order. Please try again.' })
+    } finally {
+      setLoading(false)
+    }
+  }
   if (cart.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">

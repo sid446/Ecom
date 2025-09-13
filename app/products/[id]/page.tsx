@@ -29,7 +29,7 @@ import { FormEvent } from 'react' // Find the 'react' import and add FormEvent
 import LeaveReview from '@/components/LeaveReview'
 
 // Updated interface to match new schema
-interface ProductWithStock extends Product {
+interface ProductWithStock extends Omit<Product, 'stock'> {
   stock: {
     S: number
     M: number

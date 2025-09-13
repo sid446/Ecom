@@ -141,16 +141,16 @@ export default function ShippingForm({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-8">
+    <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-lg shadow-lg p-8">
       <div className="flex items-center mb-6">
-        <Truck className="w-6 h-6 text-blue-600 mr-3" />
-        <h2 className="text-2xl font-bold text-gray-900">Shipping Information</h2>
+        <Truck className="w-6 h-6 text-white mr-3" />
+        <h2 className="text-2xl font-bold text-white">Shipping Information</h2>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-white mb-2">
               <User className="w-4 h-4 inline mr-2" />
               Full Name *
             </label>
@@ -162,14 +162,14 @@ export default function ShippingForm({
               value={formData.name}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 
-                ${errors.name && touched.name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                focus:outline-none focus:ring-2 focus:ring-blue-200`}
+              className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+                ${errors.name && touched.name ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
+                ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
+                focus:outline-none focus:ring-2 focus:ring-white/20`}
               placeholder="Enter your full name"
             />
             {errors.name && touched.name && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
+              <p className="mt-1 text-sm text-red-400 flex items-center">
                 <AlertCircle className="w-4 h-4 mr-1" />
                 {errors.name}
               </p>
@@ -177,7 +177,7 @@ export default function ShippingForm({
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-white mb-2">
               <Mail className="w-4 h-4 inline mr-2" />
               Email Address *
             </label>
@@ -189,14 +189,14 @@ export default function ShippingForm({
               value={formData.email}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 
-                ${errors.email && touched.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                focus:outline-none focus:ring-2 focus:ring-blue-200`}
+              className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+                ${errors.email && touched.email ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
+                ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
+                focus:outline-none focus:ring-2 focus:ring-white/20`}
               placeholder="Enter your email address"
             />
             {errors.email && touched.email && (
-              <p className="mt-1 text-sm text-red-600 flex items-center">
+              <p className="mt-1 text-sm text-red-400 flex items-center">
                 <AlertCircle className="w-4 h-4 mr-1" />
                 {errors.email}
               </p>
@@ -205,7 +205,7 @@ export default function ShippingForm({
         </div>
         
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-white mb-2">
             <Phone className="w-4 h-4 inline mr-2" />
             Phone Number *
           </label>
@@ -217,14 +217,14 @@ export default function ShippingForm({
             value={formData.phone}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 
-              ${errors.phone && touched.phone ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-              ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-              focus:outline-none focus:ring-2 focus:ring-blue-200`}
+            className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+              ${errors.phone && touched.phone ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
+              ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
+              focus:outline-none focus:ring-2 focus:ring-white/20`}
             placeholder="Enter your phone number"
           />
           {errors.phone && touched.phone && (
-            <p className="mt-1 text-sm text-red-600 flex items-center">
+            <p className="mt-1 text-sm text-red-400 flex items-center">
               <AlertCircle className="w-4 h-4 mr-1" />
               {errors.phone}
             </p>
@@ -232,7 +232,7 @@ export default function ShippingForm({
         </div>
         
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-white mb-2">
             <MapPin className="w-4 h-4 inline mr-2" />
             Street Address *
           </label>
@@ -244,14 +244,14 @@ export default function ShippingForm({
             onChange={handleInputChange}
             onBlur={handleBlur}
             rows={3}
-            className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 resize-none
-              ${errors.address && touched.address ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-              ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-              focus:outline-none focus:ring-2 focus:ring-blue-200`}
+            className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 resize-none
+              ${errors.address && touched.address ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
+              ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
+              focus:outline-none focus:ring-2 focus:ring-white/20`}
             placeholder="Enter your complete address"
           />
           {errors.address && touched.address && (
-            <p className="mt-1 text-sm text-red-600 flex items-center">
+            <p className="mt-1 text-sm text-red-400 flex items-center">
               <AlertCircle className="w-4 h-4 mr-1" />
               {errors.address}
             </p>
@@ -260,7 +260,7 @@ export default function ShippingForm({
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
+            <label className="block text-sm font-semibold text-white mb-2">City *</label>
             <input
               type="text"
               name="city"
@@ -269,19 +269,19 @@ export default function ShippingForm({
               value={formData.city}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-black rounded-lg px-4 py-3 transition-colors duration-200 
-                ${errors.city && touched.city ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                focus:outline-none focus:ring-2 focus:ring-blue-200`}
+              className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+                ${errors.city && touched.city ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
+                ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
+                focus:outline-none focus:ring-2 focus:ring-white/20`}
               placeholder="City"
             />
             {errors.city && touched.city && (
-              <p className="mt-1 text-sm text-red-600">{errors.city}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.city}</p>
             )}
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Postal Code *</label>
+            <label className="block text-sm font-semibold text-white mb-2">Postal Code *</label>
             <input
               type="text"
               name="postalCode"
@@ -290,20 +290,19 @@ export default function ShippingForm({
               value={formData.postalCode}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-black
-                 rounded-lg px-4 py-3 transition-colors duration-200 
-                ${errors.postalCode && touched.postalCode ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'} 
-                ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                focus:outline-none focus:ring-2 focus:ring-blue-200`}
+              className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+                ${errors.postalCode && touched.postalCode ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
+                ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
+                focus:outline-none focus:ring-2 focus:ring-white/20`}
               placeholder="Postal Code"
             />
             {errors.postalCode && touched.postalCode && (
-              <p className="mt-1 text-sm text-red-600">{errors.postalCode}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.postalCode}</p>
             )}
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Country *</label>
+            <label className="block text-sm font-semibold text-white mb-2">Country *</label>
             <select
               name="country"
               required
@@ -311,12 +310,12 @@ export default function ShippingForm({
               value={formData.country}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-black border-gray-300 rounded-lg px-4 py-3 transition-colors duration-200
-                ${sendingOtp || verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : ''}
-                focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500`}
+              className={`w-full border text-white bg-zinc-800 border-zinc-700 rounded-lg px-4 py-3 transition-colors duration-200
+                ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
+                focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white`}
             >
               {COUNTRIES.map(country => (
-                <option key={country} value={country}>{country}</option>
+                <option key={country} value={country} className="bg-zinc-800 text-white">{country}</option>
               ))}
             </select>
           </div>
@@ -324,21 +323,21 @@ export default function ShippingForm({
 
         {/* OTP Verification Section */}
         {otpSent && !otpVerified && (
-          <div className="pt-6 border-t border-gray-200">
-            <div className="bg-blue-50 rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-2 flex items-center">
+          <div className="pt-6 border-t border-zinc-700">
+            <div className="bg-blue-900/30 rounded-lg p-6 mb-6 border border-blue-800">
+              <h3 className="text-lg font-semibold text-blue-400 mb-2 flex items-center">
                 <Mail className="w-5 h-5 mr-2" />
                 Email Verification Required
               </h3>
-              <p className="text-blue-800 mb-4">
+              <p className="text-blue-300 mb-4">
                 We've sent a 6-digit verification code to <span className="font-semibold">{formData.email}</span>. 
                 Please check your inbox and enter the code below to continue.
               </p>
               
-              <div className="bg-white rounded-lg p-4">
+              <div className="bg-zinc-800 rounded-lg p-4">
                 <div className="flex items-start gap-4">
                   <div className="flex-1">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-white mb-2">
                       Verification Code
                     </label>
                     <input
@@ -346,9 +345,9 @@ export default function ShippingForm({
                       value={otp}
                       disabled={verifyingOtp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className={`w-full border text-black border-gray-300 rounded-lg px-4 py-3 text-center text-lg font-mono tracking-widest transition-colors duration-200
-                        ${verifyingOtp ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'}
-                        focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500`}
+                      className={`w-full border text-white bg-zinc-900 border-zinc-700 rounded-lg px-4 py-3 text-center text-lg font-mono tracking-widest transition-colors duration-200
+                        ${verifyingOtp ? 'bg-zinc-800 cursor-not-allowed' : 'bg-zinc-900'}
+                        focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white`}
                       placeholder="000000"
                       maxLength={6}
                     />
@@ -358,7 +357,7 @@ export default function ShippingForm({
                       type="button"
                       onClick={onVerifyOtp}
                       disabled={otp.length !== 6 || verifyingOtp}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-medium flex items-center whitespace-nowrap"
+                      className="bg-white text-black px-6 py-3 rounded-lg hover:bg-zinc-200 disabled:bg-zinc-600 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors duration-200 font-medium flex items-center whitespace-nowrap"
                     >
                       {verifyingOtp ? (
                         <>
@@ -374,9 +373,9 @@ export default function ShippingForm({
                 
                 {otpCountdown > 0 && (
                   <div className="mt-4 flex items-center justify-between">
-                    <p className="text-sm text-gray-600 flex items-center">
-                      <Clock className="w-4 h-4 mr-1 text-orange-500" />
-                      Code expires in <span className="font-mono ml-1 font-semibold text-orange-600">
+                    <p className="text-sm text-zinc-400 flex items-center">
+                      <Clock className="w-4 h-4 mr-1 text-orange-400" />
+                      Code expires in <span className="font-mono ml-1 font-semibold text-orange-400">
                         {Math.floor(otpCountdown / 60)}:{(otpCountdown % 60).toString().padStart(2, '0')}
                       </span>
                     </p>
@@ -388,7 +387,7 @@ export default function ShippingForm({
                     type="button"
                     onClick={onSendOtp}
                     disabled={sendingOtp}
-                    className="mt-4 text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center transition-colors duration-200"
+                    className="mt-4 text-white hover:text-zinc-300 text-sm font-medium inline-flex items-center transition-colors duration-200"
                   >
                     {sendingOtp ? (
                       <>
@@ -402,9 +401,9 @@ export default function ShippingForm({
                 )}
                 
                 {otpError && (
-                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-800 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-2 text-red-600" />
+                  <div className="mt-4 p-3 bg-red-900/50 border border-red-800 rounded-lg">
+                    <p className="text-sm text-red-300 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-2 text-red-400" />
                       {otpError}
                     </p>
                   </div>
@@ -418,7 +417,7 @@ export default function ShippingForm({
           <button
             type="submit"
             disabled={sendingOtp || verifyingOtp}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 font-semibold flex items-center"
+            className="bg-white text-black px-8 py-3 rounded-lg hover:bg-zinc-200 disabled:bg-zinc-600 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors duration-200 font-semibold flex items-center"
           >
             {sendingOtp ? (
               <>

@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
           orderItems: orderItems.map((item: any) => ({
             name: item.name,
             quantity: item.quantity,
-            size: item.selectedSize, // <-- Updated this line to include size in the email
+            size: item.size, // <-- Updated this line to include size in the email
             price: item.price,
             image: item.image,
           })),

@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       shipping,
       tax,
       shippingAddress,
+      
       paymentMethod
     } = body;
 
