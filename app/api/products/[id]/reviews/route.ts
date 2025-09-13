@@ -11,14 +11,14 @@ import mongoose from 'mongoose';
  */
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: any
 ) {
   try {
     await connectToDatabase();
     
     // Await the params in Next.js 15
-    const params = await context.params;
-    const productId = params.id;
+    const resolvedParams = await context.params;
+    const productId = resolvedParams.id;
     const body = await request.json();
 
     const { rating, comment, email } = body;
