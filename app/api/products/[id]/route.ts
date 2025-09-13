@@ -9,17 +9,21 @@ import mongoose from 'mongoose';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     await connectToDatabase();
     
+    // Await the params in Next.js 15
+    const resolvedParams = await context.params;
+    const productId = resolvedParams.id;
+    
     // Check for valid ObjectId format before querying
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
         return NextResponse.json({ message: 'Invalid product ID format' }, { status: 400 });
     }
 
-    const product = await Product.findById(params.id);
+    const product = await Product.findById(productId);
 
     if (!product) {
       return NextResponse.json({ message: 'Product not found' }, { status: 404 });
@@ -27,7 +31,7 @@ export async function GET(
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error(`Failed to fetch product ${params.id}:`, error);
+    console.error(`Failed to fetch product:`, error);
     return NextResponse.json({ message: 'Failed to fetch product' }, { status: 500 });
   }
 }
@@ -38,12 +42,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     await connectToDatabase();
+    
+    // Await the params in Next.js 15
+    const resolvedParams = await context.params;
+    const productId = resolvedParams.id;
 
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
         return NextResponse.json({ message: 'Invalid product ID format' }, { status: 400 });
     }
 
@@ -75,7 +83,7 @@ export async function PUT(
     };
 
     const product = await Product.findByIdAndUpdate(
-      params.id,
+      productId,
       updateData,
       {
         new: true, // Return the updated document
@@ -89,7 +97,7 @@ export async function PUT(
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error(`Failed to update product ${params.id}:`, error);
+    console.error(`Failed to update product:`, error);
     if (error instanceof mongoose.Error.ValidationError) {
         const errors = Object.values(error.errors).map(e => e.message);
         return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
@@ -104,16 +112,20 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
     await connectToDatabase();
+    
+    // Await the params in Next.js 15
+    const resolvedParams = await context.params;
+    const productId = resolvedParams.id;
 
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
         return NextResponse.json({ message: 'Invalid product ID format' }, { status: 400 });
     }
 
-    const product = await Product.findByIdAndDelete(params.id);
+    const product = await Product.findByIdAndDelete(productId);
 
     if (!product) {
       return NextResponse.json({ message: 'Product not found' }, { status: 404 });
@@ -121,7 +133,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Product deleted successfully' });
   } catch (error) {
-    console.error(`Failed to delete product ${params.id}:`, error);
+    console.error(`Failed to delete product:`, error);
     return NextResponse.json({ message: 'Failed to delete product' }, { status: 500 });
   }
 }
