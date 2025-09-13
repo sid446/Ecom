@@ -88,7 +88,7 @@ export async function POST(
     return NextResponse.json({ message: 'Review added successfully!' }, { status: 201 });
 
   } catch (error) {
-    console.error(`Failed to add review for product ${resolvedParams?.id || 'unknown'}:`, error);
+    console.error(`Failed to add review:`, error);
     return NextResponse.json({ message: 'Failed to add review' }, { status: 500 });
   }
 }
