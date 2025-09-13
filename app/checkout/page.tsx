@@ -150,73 +150,74 @@ export default function Checkout() {
   }
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    setLoading(true)
+    e.preventDefault()
+    
+    setLoading(true)
 
-    try {
-      const orderData = {
-        customerInfo: formData,
-        orderItems: cart.map(item => ({
-          product: item._id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          image: item.imagefront,
-          // Add the selectedSize here
-          size: item.selectedSize, 
-        })),
-        totalPrice: total,
-        subtotal,
-        shipping,
-        tax,
-        paymentMethod,
-        shippingAddress: {
-          address: formData.address,
-          city: formData.city,
-          postalCode: formData.postalCode,
-          country: formData.country,
-        },
-      }
+    try {
+      const orderData = {
+        customerInfo: formData,
+        orderItems: cart.map(item => ({
+          product: item._id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.imagefront,
+          // Add the selectedSize here
+          size: item.selectedSize, 
+        })),
+        totalPrice: total,
+        subtotal,
+        shipping,
+        tax,
+        paymentMethod,
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          country: formData.country,
+        },
+      }
 
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      })
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      })
 
-      if (response.ok) {
-        const order = await response.json()
-        clearCart()
-        router.push(`/order-confirmation/${order._id}`)
-      } else {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to place order')
-      }
-    } catch (error) {
-      console.error('Error placing order:', error)
-      setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order. Please try again.' })
-    } finally {
-      setLoading(false)
-    }
-  }
+      if (response.ok) {
+        const order = await response.json()
+        clearCart()
+        router.push(`/order-confirmation/${order._id}`)
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to place order')
+      }
+    } catch (error) {
+      console.error('Error placing order:', error)
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order. Please try again.' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-black text-white">
         <Navbar />
-        <main className="container mx-auto px-4 py-12">
+        <main className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="max-w-md mx-auto text-center">
-            <div className="bg-white rounded-2xl shadow-sm p-8">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ShoppingBag className="w-10 h-10 text-gray-400" />
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-lg p-8">
+              <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ShoppingBag className="w-10 h-10 text-zinc-500" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
-              <p className="text-gray-600 mb-8">Add some items to your cart before checking out.</p>
+              <h1 className="text-2xl font-bold text-white mb-2">Your cart is empty</h1>
+              <p className="text-zinc-400 mb-8">Add some items to your cart before checking out.</p>
               <Link
                 href="/"
-                className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium"
+                className="inline-flex items-center bg-white text-black px-6 py-3 rounded-md hover:bg-zinc-200 transition-colors duration-200 font-semibold"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Continue Shopping
@@ -229,33 +230,33 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen pt-10 bg-gradient-to-b from-black via-zinc-900 to-black text-white">
       <Navbar />
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <Link
             href="/cart"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors duration-200 mb-4"
+            className="inline-flex items-center text-zinc-400 hover:text-white transition-colors duration-200 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Cart
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+          <h1 className="text-3xl lg:text-4xl font-bold text-white">Checkout</h1>
           
           {/* Enhanced Progress Steps */}
           <div className="flex items-center mt-6 space-x-4">
-            <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className={`flex items-center ${currentStep >= 1 ? 'text-white' : 'text-zinc-500'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-200
-                ${currentStep >= 1 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300'}`}>
+                ${currentStep >= 1 ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
                 {sendingOtp || verifyingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : '1'}
               </div>
               <span className="ml-3 font-medium">Shipping & Verification</span>
             </div>
-            <div className={`flex-1 h-0.5 transition-colors duration-200 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
-            <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className={`flex-1 h-0.5 transition-colors duration-200 ${currentStep >= 2 ? 'bg-white' : 'bg-zinc-700'}`} />
+            <div className={`flex items-center ${currentStep >= 2 ? 'text-white' : 'text-zinc-500'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-200
-                ${currentStep >= 2 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300'}`}>
+                ${currentStep >= 2 ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
                 {loading && currentStep === 2 ? <Loader2 className="w-4 h-4 animate-spin" /> : '2'}
               </div>
               <span className="ml-3 font-medium">Review & Payment</span>
