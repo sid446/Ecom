@@ -1,10 +1,10 @@
 import React from 'react'
 import ProductCard from './ProductCard' // Adjust path as needed
 import ProductSkeleton from './ProductSkeleton' // Import your existing ProductSkeleton
-import { Product } from '@/types' // Adjust path as needed
+import { ProductWithStock } from '@/types' // Adjust path as needed
 
 interface NewArrivalProps {
-    products: Product[] // Required prop to pass products
+    products: ProductWithStock[] // Required prop to pass products
     loading?: boolean // Optional loading prop
 }
 
