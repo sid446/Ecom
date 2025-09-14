@@ -1,15 +1,15 @@
 "use client"
 import { Instrument_Sans } from "next/font/google"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo, useRef } from "react"
 import Navbar from "@/components/Navbar"
 import ProductCard from "@/components/ProductCard"
-import type { Product } from "@/types"
-import { Search, RefreshCw, AlertCircle, Package, X, ChevronDown, Filter, SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, RefreshCw, AlertCircle, Package, X, SlidersHorizontal } from "lucide-react"
 import ProductSkeleton from "@/components/ProductSkeleton"
 import Hero from "@/components/Hero"
 import NewArrival from "@/components/NewArrival"
 import Categories from "@/components/Categories"
 import PremiumFooter from "@/components/Footer"
+import { useProducts } from "@/context/ProductContext"
 import type { ProductWithStock } from "@/types"
 
 const Instrument = Instrument_Sans({
@@ -18,121 +18,25 @@ const Instrument = Instrument_Sans({
   variable: "--font-Instrument",
 })
 
-// Updated interface to match API response
-interface ProductsResponse {
-  data: ProductWithStock[]
-  pagination: {
-    total: number
-    page: number
-    limit: number
-    totalPages: number
-  }
-}
-
 export default function Home() {
-  const [products, setProducts] = useState<ProductWithStock[]>([])
-  const [allProducts, setAllProducts] = useState<ProductWithStock[]>([]) // Store all products for filtering
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { 
+    products, 
+    loading, 
+    error, 
+    refetchProducts, 
+    getUniqueCategories, 
+    getPriceRange 
+  } = useProducts()
+
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<"name" | "price-low" | "price-high" | "stock">("name")
   const [filterByStock, setFilterByStock] = useState<"all" | "in-stock" | "low-stock">("all")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 10000 })
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [retryCount, setRetryCount] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pagination, setPagination] = useState({
-    total: 0,
-    page: 1,
-    limit: 12, // Adjusted for better grid layout
-    totalPages: 0
-  })
-  const [loadingMore, setLoadingMore] = useState(false)
 
-  useEffect(() => {
-    fetchProducts()
-  }, [currentPage])
-
-  const fetchProducts = async (page: number = currentPage) => {
-    try {
-      if (page === 1) {
-        setLoading(true)
-      } else {
-        setLoadingMore(true)
-      }
-      setError(null)
-
-      const response = await fetch(`/api/products?page=${page}&limit=${pagination.limit}`)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data: ProductsResponse = await response.json()
-      
-      if (page === 1) {
-        setProducts(data.data)
-        setAllProducts(data.data)
-      } else {
-        // Append new products for "Load More" functionality
-        setProducts(prev => [...prev, ...data.data])
-        setAllProducts(prev => [...prev, ...data.data])
-      }
-      
-      setPagination(data.pagination)
-      setRetryCount(0)
-    } catch (error) {
-      console.error("Error fetching products:", error)
-      setError(error instanceof Error ? error.message : "Failed to fetch products")
-      setRetryCount((prev) => prev + 1)
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-    }
-  }
-
-  // Fetch all products for client-side filtering (alternative approach)
-  const fetchAllProducts = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      // Fetch a large number or implement a separate endpoint for all products
-      const response = await fetch(`/api/products?page=1&limit=1000`)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data: ProductsResponse = await response.json()
-      setAllProducts(data.data)
-      setProducts(data.data)
-      setRetryCount(0)
-    } catch (error) {
-      console.error("Error fetching all products:", error)
-      setError(error instanceof Error ? error.message : "Failed to fetch products")
-      setRetryCount((prev) => prev + 1)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleRetry = () => {
-    fetchProducts(1)
-    setCurrentPage(1)
-  }
-
-  const handleLoadMore = () => {
-    if (currentPage < pagination.totalPages) {
-      const nextPage = currentPage + 1
-      setCurrentPage(nextPage)
-      fetchProducts(nextPage)
-    }
-  }
+  // Ref for products section
+  const productsRef = useRef<HTMLDivElement>(null)
 
   // Calculate stock total for filtering
   const getStockTotal = (stock: any) => {
@@ -143,21 +47,16 @@ export default function Home() {
     return 0
   }
 
-  // Get unique categories from all products
-  const availableCategories = useMemo(() => {
-    const categories = allProducts.map(product => product.category)
-    return [...new Set(categories)].filter(Boolean)
-  }, [allProducts])
+  // Get available categories and price range from context
+  const availableCategories = getUniqueCategories()
+  const productPriceRange = getPriceRange()
 
-  // Get price range from all products
-  const productPriceRange = useMemo(() => {
-    if (allProducts.length === 0) return { min: 0, max: 10000 }
-    const prices = allProducts.map(p => p.price)
-    return {
-      min: Math.floor(Math.min(...prices) / 100) * 100,
-      max: Math.ceil(Math.max(...prices) / 100) * 100
+  // Update price range when products change
+  useMemo(() => {
+    if (products.length > 0 && priceRange.min === 0 && priceRange.max === 10000) {
+      setPriceRange(productPriceRange)
     }
-  }, [allProducts])
+  }, [products, productPriceRange, priceRange])
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories(prev =>
@@ -167,9 +66,33 @@ export default function Home() {
     )
   }
 
-  // Filter and sort products (now working with allProducts for client-side filtering)
+  // Handle category selection from Categories component
+  const handleCategorySelect = (categoryType: string) => {
+    console.log('Selected category:', categoryType) // Debug log
+    console.log('Available categories:', availableCategories) // Debug log
+    console.log('Products sample:', products.slice(0, 3).map(p => ({ name: p.name, category: p.category }))) // Debug log
+    
+    // Clear existing filters first (optional - you can remove this if you want to keep other filters)
+    setSearchTerm("")
+    
+    // Set the selected category (already in lowercase from Categories component)
+    setSelectedCategories([categoryType])
+    
+    // Scroll to products section
+    if (productsRef.current) {
+      productsRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      })
+    }
+
+    // Don't show filters sidebar on mobile - keep it closed for better UX
+    // setShowFilters(true)
+  }
+
+  // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    const filtered = allProducts.filter((product) => {
+    const filtered = products.filter((product:any) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -189,7 +112,7 @@ export default function Home() {
       return matchesSearch && matchesStockFilter && matchesCategory && matchesPrice
     })
 
-    filtered.sort((a, b) => {
+    filtered.sort((a:any, b:any) => {
       switch (sortBy) {
         case "name":
           return a.name.localeCompare(b.name)
@@ -205,7 +128,7 @@ export default function Home() {
     })
 
     return filtered
-  }, [allProducts, searchTerm, sortBy, filterByStock, selectedCategories, priceRange])
+  }, [products, searchTerm, sortBy, filterByStock, selectedCategories, priceRange])
 
   const clearAllFilters = () => {
     setSearchTerm("")
@@ -215,10 +138,9 @@ export default function Home() {
     setPriceRange(productPriceRange)
   }
 
-  // Initialize with all products for filtering
-  useEffect(() => {
-    fetchAllProducts()
-  }, [])
+  const handleRetry = () => {
+    refetchProducts()
+  }
 
   // Sidebar Filter Component
   const FilterSidebar = ({ isMobile = false }) => {
@@ -311,7 +233,7 @@ export default function Home() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Categories</label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {availableCategories.map((category) => (
+                {availableCategories.map((category:any) => (
                   <label key={category} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -433,9 +355,9 @@ export default function Home() {
           }
           
           .scrollbar-hide {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-}
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+          }
           
           .scrollbar-hide::-webkit-scrollbar { 
             display: none !important;
@@ -447,24 +369,25 @@ export default function Home() {
       <div className={`min-h-screen bg-white ${Instrument.className} scrollbar-hide`}>
         <div className="sticky top-0 z-50">
           <Navbar />
+          
         </div>
 
         <main className="container mx-auto scrollbar-hide">
           {/* Hero Section */}
-          <div className="text-center mb-5">
+          <div className="text-center mb-5 ">
             <Hero />
           </div>
 
           <div className="mb-2 sm:mb-2 md:mb-3 lg:mb-0 ">
-            <NewArrival products={allProducts} loading={loading} />
+            <NewArrival products={products} loading={loading} />
           </div>
 
           <div className="mb-5 sm:mb-5 md:mb-8 lg:mb-10">
-            <Categories />
+            <Categories onCategorySelect={handleCategorySelect} />
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex gap-6 px-4 sm:px-5 md:px-7 lg:px-8">
+          {/* Main Content Area - Added ref here */}
+          <div ref={productsRef} className="flex gap-6 px-4 sm:px-5 md:px-7 lg:px-8">
             {/* Desktop Sidebar - Only shown when showFilters is true */}
             {showFilters && (
               <aside className="hidden lg:block w-80 flex-shrink-0">
@@ -483,6 +406,17 @@ export default function Home() {
                   <span className="text-sm text-gray-400">
                     ({filteredAndSortedProducts.length} products)
                   </span>
+                  {/* Show selected category indicator - Hidden on mobile to prevent layout shift */}
+                  {selectedCategories.length > 0 && (
+                    <div className="hidden sm:flex items-center gap-2">
+                      <span className="text-sm text-gray-500">Filtered by:</span>
+                      {selectedCategories.map((category) => (
+                        <span key={category} className="bg-black text-white text-xs px-2 py-1 rounded-full">
+                          {category}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -563,13 +497,6 @@ export default function Home() {
                       <ProductCard key={product._id} product={product} />
                     ))}
                   </div>
-
-                  {/* Pagination Info */}
-                  {pagination.totalPages > 1 && (
-                    <div className="mt-8 text-center text-sm text-gray-600">
-                      Showing {filteredAndSortedProducts.length} of {pagination.total} products
-                    </div>
-                  )}
                 </div>
               )}
 

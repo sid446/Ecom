@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Categories() {
+function Categories({ onCategorySelect }: { onCategorySelect: (category: string) => void }) {
     const items = [
         {
             id: 1,
@@ -18,12 +18,19 @@ function Categories() {
         },
         {
             id: 3,
-            type: "T-Shirts",
+            type: "TShirts",
             img: "/AllTshirt.png",
             tagline: "Express Yourself",
             badge: "New Collection"
         }
     ]
+
+    const handleCategoryClick = (categoryType: string) => {
+        // Call the callback function to handle category selection and scrolling
+        if (onCategorySelect) {
+            onCategorySelect(categoryType)
+        }
+    }
 
     return (
         <div className="w-full backdrop-blur-sm py-4 px-4 sm:px-4 md:px-6 lg:px-8">
@@ -57,6 +64,7 @@ function Categories() {
                     {items.map((item) => (
                         <div 
                             key={item.id}
+                            onClick={() => handleCategoryClick(item.type.toLowerCase())}
                             className="flex-shrink-0 w-full sm:w-full md:w-80 lg:w-120 text-black transition-all duration-300 overflow-hidden group cursor-pointer hover:shadow-xl"
                         >
                             {/* Product Image Container with Relative Positioning */}

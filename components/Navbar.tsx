@@ -38,19 +38,23 @@ const Navbar: React.FC = () => {
 
     if (isMenuOpen) {
       document.addEventListener('keydown', handleEscape)
+      // Only prevent body scroll, don't set overflow hidden on html
+      const originalStyle = window.getComputedStyle(document.body).overflow
       document.body.style.overflow = 'hidden'
+      
       // Focus first menu item
       setTimeout(() => {
         const firstMenuItem = menuRef.current?.querySelector('a')
         firstMenuItem?.focus()
       }, 100)
-    } else {
-      document.body.style.overflow = ''
+      
+      return () => {
+        document.body.style.overflow = originalStyle
+      }
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = ''
     }
   }, [isMenuOpen])
 
@@ -80,64 +84,64 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <nav className={`w-full fixed top-0 z-50 transition-all duration-300 ${
+      <nav className={`w-full fixed top-0 left-0 z-50 transition-all duration-300 ${
         isScrolled 
           ? 'bg-black/95 backdrop-blur-md shadow-lg' 
-          : 'bg-black/0 '
+          : 'bg-black/30 backdrop-blur-sm'
       }`}>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-12 lg:h-16">
+        <div className="w-full max-w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             {/* Left side - Menu button */}
-            <div className="flex-1 flex justify-start">
+            <div className="flex items-center justify-start flex-shrink-0">
               <button
                 onClick={toggleMenu}
                 aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={isMenuOpen}
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 group"
               >
-                <Menu size={20} className="group-hover:scale-110 transition-transform" />
-                <span className="hidden sm:inline">Menu</span>
+                <Menu size={20} className="group-hover:scale-110 transition-transform flex-shrink-0" />
+                <span className="hidden sm:inline whitespace-nowrap">Menu</span>
               </button>
             </div>
 
             {/* Center - Logo */}
-            <div className="flex-1 flex justify-center">
+            <div className="flex items-center justify-center flex-shrink-0 mx-4">
               <Link
                 href="/"
-                className="flex items-center space-x-2 text-xl sm:text-2xl font-bold text-white hover:scale-105 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-white/20 rounded-lg p-2 transition-all duration-200"
+                className="flex items-center justify-center text-xl sm:text-2xl font-bold text-white hover:scale-105 focus:scale-105 focus:outline-none focus:ring-2 focus:ring-white/20 rounded-lg p-2 transition-all duration-200"
                 aria-label="Go to homepage"
               >
-                <div className="relative w-14 h-14 sm:w-14 sm:h-14 lg:w-18 lg:h-18">
+                <div className="relative w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 flex-shrink-0">
                   <Image
                     src="/logo.PNG"
                     alt="Company Logo"
                     fill
                     className="object-contain"
                     priority
-                    sizes="(max-width: 768px) 48px, (max-width: 1024px) 56px, 64px"
+                    sizes="(max-width: 640px) 40px, (max-width: 1024px) 48px, 56px"
                   />
                 </div>
               </Link>
             </div>
 
             {/* Right side - Account and Cart */}
-            <div className="flex-1 flex justify-end">
+            <div className="flex items-center justify-end flex-shrink-0">
               <div className="flex items-center space-x-1">
                 <Link
                   href="/account"
-                  className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 group"
+                  className="flex items-center space-x-1 px-2 sm:px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 group"
                   aria-label="Go to account"
                 >
-                  <User size={20} className="group-hover:scale-110 transition-transform" />
-                  <span className="hidden md:inline">Account</span>
+                  <User size={20} className="group-hover:scale-110 transition-transform flex-shrink-0" />
+                  <span className="hidden md:inline whitespace-nowrap">Account</span>
                 </Link>
                 
                 <Link
                   href="/cart"
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 group relative"
+                  className="flex items-center space-x-2 px-2 sm:px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 group relative"
                   aria-label={`Go to cart${cartCount > 0 ? ` (${cartCount} items)` : ''}`}
                 >
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
                     {cartCount > 0 && (
                       <span 
@@ -148,7 +152,7 @@ const Navbar: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <span className="hidden sm:inline">Cart</span>
+                  <span className="hidden sm:inline whitespace-nowrap">Cart</span>
                 </Link>
               </div>
             </div>
@@ -168,7 +172,7 @@ const Navbar: React.FC = () => {
       {/* Sliding Menu */}
       <div 
         ref={menuRef}
-        className={`fixed top-0 left-0 h-full w-full sm:w-96 lg:w-80 bg-white shadow-2xl z-50 transform transition-all duration-300 ease-out ${
+        className={`fixed top-0 left-0 h-full w-full max-w-sm sm:max-w-md lg:max-w-sm bg-white shadow-2xl z-50 transform transition-all duration-300 ease-out ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"
@@ -176,11 +180,11 @@ const Navbar: React.FC = () => {
         aria-label="Navigation menu"
       >
         {/* Menu Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-xl font-bold text-gray-800">Navigation</h2>
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate">Navigation</h2>
           <button
             onClick={closeMenu}
-            className="p-2 rounded-full hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors duration-200"
+            className="p-2 rounded-full hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors duration-200 flex-shrink-0 ml-4"
             aria-label="Close menu"
           >
             <X size={24} className="text-gray-600" />
@@ -188,86 +192,88 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Menu Content */}
-        <div className="flex flex-col h-full overflow-y-auto">
-          <div className="flex-1 p-6 space-y-8">
-            {/* Main Navigation */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                Navigation
-              </h3>
-              {menuItems.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={closeMenu}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 group ${
-                    isActivePath(href)
-                      ? 'bg-black text-white shadow-lg'
-                      : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400'
-                  }`}
-                >
-                  <Icon 
-                    size={20} 
-                    className={`group-hover:scale-110 transition-transform ${
-                      isActivePath(href) ? 'text-white' : 'text-gray-500'
-                    }`} 
-                  />
-                  <span>{label}</span>
-                  {isActivePath(href) && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full" />
-                  )}
-                </Link>
-              ))}
-            </div>
+        <div className="flex flex-col h-full overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+              {/* Main Navigation */}
+              <div className="space-y-2">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 sm:mb-4">
+                  Navigation
+                </h3>
+                {menuItems.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={closeMenu}
+                    className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full ${
+                      isActivePath(href)
+                        ? 'bg-black text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400'
+                    }`}
+                  >
+                    <Icon 
+                      size={18} 
+                      className={`group-hover:scale-110 transition-transform flex-shrink-0 ${
+                        isActivePath(href) ? 'text-white' : 'text-gray-500'
+                      }`} 
+                    />
+                    <span className="truncate">{label}</span>
+                    {isActivePath(href) && (
+                      <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />
+                    )}
+                  </Link>
+                ))}
+              </div>
 
-            {/* Account Section */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                Account
-              </h3>
-              {accountItems.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={closeMenu}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 group ${
-                    isActivePath(href)
-                      ? 'bg-black text-white shadow-lg'
-                      : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400'
-                  }`}
-                >
-                  <Icon 
-                    size={20} 
-                    className={`group-hover:scale-110 transition-transform ${
-                      isActivePath(href) ? 'text-white' : 'text-gray-500'
-                    }`} 
-                  />
-                  <span>{label}</span>
-                  {isActivePath(href) && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full" />
-                  )}
-                </Link>
-              ))}
+              {/* Account Section */}
+              <div className="space-y-2">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 sm:mb-4">
+                  Account
+                </h3>
+                {accountItems.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={closeMenu}
+                    className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full ${
+                      isActivePath(href)
+                        ? 'bg-black text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400'
+                    }`}
+                  >
+                    <Icon 
+                      size={18} 
+                      className={`group-hover:scale-110 transition-transform flex-shrink-0 ${
+                        isActivePath(href) ? 'text-white' : 'text-gray-500'
+                      }`} 
+                    />
+                    <span className="truncate">{label}</span>
+                    {isActivePath(href) && (
+                      <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />
+                    )}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Cart Quick Access - Fixed at bottom */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
+          <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
             <Link
               href="/cart"
               onClick={closeMenu}
-              className="flex items-center justify-between w-full bg-black text-white px-6 py-4 rounded-xl hover:bg-gray-800 focus:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 shadow-lg group"
+              className="flex items-center justify-between w-full bg-black text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl hover:bg-gray-800 focus:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-all duration-200 shadow-lg group"
             >
-              <div className="flex items-center space-x-3">
-                <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
-                <span className="font-medium">View Cart</span>
+              <div className="flex items-center space-x-3 min-w-0">
+                <ShoppingCart size={20} className="group-hover:scale-110 transition-transform flex-shrink-0" />
+                <span className="font-medium truncate">View Cart</span>
               </div>
               {cartCount > 0 && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-300">
+                <div className="flex items-center space-x-2 flex-shrink-0 ml-2">
+                  <span className="text-xs sm:text-sm text-gray-300 hidden sm:inline truncate">
                     {cartCount} item{cartCount !== 1 ? 's' : ''}
                   </span>
-                  <span className="bg-red-500 text-white text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center">
+                  <span className="bg-red-500 text-white text-xs sm:text-sm font-bold rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center flex-shrink-0">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 </div>

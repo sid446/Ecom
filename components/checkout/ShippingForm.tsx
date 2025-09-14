@@ -140,14 +140,14 @@ export default function ShippingForm({
   }
 
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-lg shadow-lg p-8">
-      <div className="flex items-center mb-6">
-        <Truck className="w-6 h-6 text-white mr-3" />
-        <h2 className="text-2xl font-bold text-white">Shipping Information</h2>
+    <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+      <div className="flex items-center mb-4 sm:mb-6">
+        <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-white mr-2 sm:mr-3 flex-shrink-0" />
+        <h2 className="text-xl sm:text-2xl font-bold text-white">Shipping Information</h2>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <label className="block text-sm font-semibold text-white mb-2">
               <User className="w-4 h-4 inline mr-2" />
@@ -161,7 +161,7 @@ export default function ShippingForm({
               value={formData.name}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+              className={`w-full border text-white bg-zinc-800 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-200 text-sm sm:text-base
                 ${errors.name && touched.name ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
                 ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-white/20`}
@@ -169,8 +169,8 @@ export default function ShippingForm({
             />
             {errors.name && touched.name && (
               <p className="mt-1 text-sm text-red-400 flex items-center">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.name}
+                <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                <span className="break-words">{errors.name}</span>
               </p>
             )}
           </div>
@@ -188,7 +188,7 @@ export default function ShippingForm({
               value={formData.email}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+              className={`w-full border text-white bg-zinc-800 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-200 text-sm sm:text-base
                 ${errors.email && touched.email ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
                 ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-white/20`}
@@ -196,8 +196,8 @@ export default function ShippingForm({
             />
             {errors.email && touched.email && (
               <p className="mt-1 text-sm text-red-400 flex items-center">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.email}
+                <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                <span className="break-words">{errors.email}</span>
               </p>
             )}
           </div>
@@ -216,7 +216,7 @@ export default function ShippingForm({
             value={formData.phone}
             onChange={handleInputChange}
             onBlur={handleBlur}
-            className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+            className={`w-full border text-white bg-zinc-800 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-200 text-sm sm:text-base
               ${errors.phone && touched.phone ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
               ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
               focus:outline-none focus:ring-2 focus:ring-white/20`}
@@ -224,8 +224,8 @@ export default function ShippingForm({
           />
           {errors.phone && touched.phone && (
             <p className="mt-1 text-sm text-red-400 flex items-center">
-              <AlertCircle className="w-4 h-4 mr-1" />
-              {errors.phone}
+              <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+              <span className="break-words">{errors.phone}</span>
             </p>
           )}
         </div>
@@ -243,7 +243,7 @@ export default function ShippingForm({
             onChange={handleInputChange}
             onBlur={handleBlur}
             rows={3}
-            className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 resize-none
+            className={`w-full border text-white bg-zinc-800 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-200 resize-none text-sm sm:text-base
               ${errors.address && touched.address ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
               ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
               focus:outline-none focus:ring-2 focus:ring-white/20`}
@@ -251,13 +251,13 @@ export default function ShippingForm({
           />
           {errors.address && touched.address && (
             <p className="mt-1 text-sm text-red-400 flex items-center">
-              <AlertCircle className="w-4 h-4 mr-1" />
-              {errors.address}
+              <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+              <span className="break-words">{errors.address}</span>
             </p>
           )}
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <div>
             <label className="block text-sm font-semibold text-white mb-2">City *</label>
             <input
@@ -268,7 +268,7 @@ export default function ShippingForm({
               value={formData.city}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+              className={`w-full border text-white bg-zinc-800 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-200 text-sm sm:text-base
                 ${errors.city && touched.city ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
                 ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-white/20`}
@@ -289,7 +289,7 @@ export default function ShippingForm({
               value={formData.postalCode}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-white bg-zinc-800 rounded-lg px-4 py-3 transition-colors duration-200 
+              className={`w-full border text-white bg-zinc-800 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-200 text-sm sm:text-base
                 ${errors.postalCode && touched.postalCode ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
                 ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-white/20`}
@@ -300,7 +300,7 @@ export default function ShippingForm({
             )}
           </div>
           
-          <div>
+          <div className="sm:col-span-2 md:col-span-1">
             <label className="block text-sm font-semibold text-white mb-2">Country *</label>
             <select
               name="country"
@@ -309,7 +309,7 @@ export default function ShippingForm({
               value={formData.country}
               onChange={handleInputChange}
               onBlur={handleBlur}
-              className={`w-full border text-white bg-zinc-800 border-zinc-700 rounded-lg px-4 py-3 transition-colors duration-200
+              className={`w-full border text-white bg-zinc-800 border-zinc-700 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-200 text-sm sm:text-base
                 ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
                 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white`}
             >
@@ -322,20 +322,20 @@ export default function ShippingForm({
 
         {/* OTP Verification Section */}
         {otpSent && !otpVerified && (
-          <div className="pt-6 border-t border-zinc-700">
-            <div className="bg-blue-900/30 rounded-lg p-6 mb-6 border border-blue-800">
+          <div className="pt-4 sm:pt-6 border-t border-zinc-700">
+            <div className="bg-blue-900/30 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 border border-blue-800">
               <h3 className="text-lg font-semibold text-blue-400 mb-2 flex items-center">
-                <Mail className="w-5 h-5 mr-2" />
-                Email Verification Required
+                <Mail className="w-5 h-5 mr-2 flex-shrink-0" />
+                <span className="break-words">Email Verification Required</span>
               </h3>
-              <p className="text-blue-300 mb-4">
-                We've sent a 6-digit verification code to <span className="font-semibold">{formData.email}</span>. 
+              <p className="text-blue-300 mb-4 text-sm sm:text-base">
+                We've sent a 6-digit verification code to <span className="font-semibold break-all">{formData.email}</span>. 
                 Please check your inbox and enter the code below to continue.
               </p>
               
-              <div className="bg-zinc-800 rounded-lg p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex-1">
+              <div className="bg-zinc-800 rounded-lg p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                  <div className="flex-1 w-full">
                     <label className="block text-sm font-semibold text-white mb-2">
                       Verification Code
                     </label>
@@ -344,19 +344,19 @@ export default function ShippingForm({
                       value={otp}
                       disabled={verifyingOtp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      className={`w-full border text-white bg-zinc-900 border-zinc-700 rounded-lg px-4 py-3 text-center text-lg font-mono tracking-widest transition-colors duration-200
+                      className={`w-full border text-white bg-zinc-900 border-zinc-700 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 text-center text-base sm:text-lg font-mono tracking-widest transition-colors duration-200
                         ${verifyingOtp ? 'bg-zinc-800 cursor-not-allowed' : 'bg-zinc-900'}
                         focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white`}
                       placeholder="000000"
                       maxLength={6}
                     />
                   </div>
-                  <div className="mt-8">
+                  <div className="w-full sm:w-auto sm:mt-8">
                     <button
                       type="button"
                       onClick={onVerifyOtp}
                       disabled={otp.length !== 6 || verifyingOtp}
-                      className="bg-white text-black px-6 py-3 rounded-lg hover:bg-zinc-200 disabled:bg-zinc-600 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors duration-200 font-medium flex items-center whitespace-nowrap"
+                      className="w-full sm:w-auto bg-white text-black px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg hover:bg-zinc-200 disabled:bg-zinc-600 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors duration-200 font-medium flex items-center justify-center text-sm sm:text-base"
                     >
                       {verifyingOtp ? (
                         <>
@@ -373,8 +373,9 @@ export default function ShippingForm({
                 {otpCountdown > 0 && (
                   <div className="mt-4 flex items-center justify-between">
                     <p className="text-sm text-zinc-400 flex items-center">
-                      <Clock className="w-4 h-4 mr-1 text-orange-400" />
-                      Code expires in <span className="font-mono ml-1 font-semibold text-orange-400">
+                      <Clock className="w-4 h-4 mr-1 text-orange-400 flex-shrink-0" />
+                      <span>Code expires in</span>
+                      <span className="font-mono ml-1 font-semibold text-orange-400">
                         {Math.floor(otpCountdown / 60)}:{(otpCountdown % 60).toString().padStart(2, '0')}
                       </span>
                     </p>
@@ -401,9 +402,9 @@ export default function ShippingForm({
                 
                 {otpError && (
                   <div className="mt-4 p-3 bg-red-900/50 border border-red-800 rounded-lg">
-                    <p className="text-sm text-red-300 flex items-center">
-                      <AlertCircle className="w-4 h-4 mr-2 text-red-400" />
-                      {otpError}
+                    <p className="text-sm text-red-300 flex items-start">
+                      <AlertCircle className="w-4 h-4 mr-2 text-red-400 flex-shrink-0 mt-0.5" />
+                      <span className="break-words">{otpError}</span>
                     </p>
                   </div>
                 )}
@@ -412,11 +413,11 @@ export default function ShippingForm({
           </div>
         )}
         
-        <div className="flex justify-end pt-6">
+        <div className="flex justify-end pt-4 sm:pt-6">
           <button
             type="submit"
             disabled={sendingOtp || verifyingOtp}
-            className="bg-white text-black px-8 py-3 rounded-lg hover:bg-zinc-200 disabled:bg-zinc-600 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors duration-200 font-semibold flex items-center"
+            className="w-full sm:w-auto bg-white text-black px-6 py-3 sm:px-8 rounded-lg hover:bg-zinc-200 disabled:bg-zinc-600 disabled:text-zinc-400 disabled:cursor-not-allowed transition-colors duration-200 font-semibold flex items-center justify-center text-sm sm:text-base"
           >
             {sendingOtp ? (
               <>
