@@ -39,7 +39,7 @@ export default function Checkout() {
     address: '',
     city: '',
     postalCode: '',
-    country: 'United States',
+    country: 'INDIA',
   })
 
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'card'>('cod')

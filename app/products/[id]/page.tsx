@@ -298,29 +298,27 @@ export default function ProductPage() {
     }
   }, [product, isMobile])
 
-  const handleAddToCart = async () => {
-    if (!product || !selectedSize || getCurrentStock() === 0 || isAdding) return
-    
-    setIsAdding(true)
-    
-    // Add the specified quantity to cart with size information
-    const productWithSize = {
-      ...product,
-      selectedSize,
-      stock: getCurrentStock()
-    }
-    
-    for (let i = 0; i < quantity; i++) {
-      addToCart(productWithSize)
-    }
-    
-    setShowSuccess(true)
-    
-    setTimeout(() => {
-      setIsAdding(false)
-      setShowSuccess(false)
-    }, 2000)
-  }
+ // In your ProductPage.tsx file
+
+const handleAddToCart = async () => {
+  if (!product || !selectedSize || getCurrentStock() === 0 || isAdding) return;
+  
+  setIsAdding(true);
+  
+  // Correct way to call addToCart: pass 'product' and 'selectedSize' as separate arguments.
+  for (let i = 0; i < quantity; i++) {
+    // Pass the main product object and the selected size.
+    // The CartContext is now responsible for handling the internal logic.
+    addToCart(product, selectedSize); 
+  }
+  
+  setShowSuccess(true);
+  
+  setTimeout(() => {
+    setIsAdding(false);
+    setShowSuccess(false);
+  }, 2000);
+}
 
   const handleQuantityChange = (action: 'increase' | 'decrease') => {
     const currentStock = getCurrentStock()

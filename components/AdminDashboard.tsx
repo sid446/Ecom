@@ -95,11 +95,17 @@ interface Product {
 interface Order {
   _id: string;
   orderId?: string;
-  user?: { _id: string; name: string; email: string };
+  user?: { _id: string; name: string; email: string; };
   orderItems?: any[];
   totalPrice: number;
   status: string;
   createdAt: string;
+  shippingAddress?:{
+    address: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  }
 }
 
 interface User {
@@ -108,6 +114,8 @@ interface User {
   email: string;
   phone?: string;
   createdAt: string;
+  
+
 }
 
 const AdminDashboard = () => {
@@ -140,6 +148,7 @@ const AdminDashboard = () => {
       if (activeTab === 'overview' || activeTab === 'users') {
         try {
           const usersData = await api.getUsers();
+          console.log(usersData)
           setUsers(usersData);
         } catch (error) {
           console.log('Users endpoint not available yet');
@@ -499,6 +508,10 @@ const AdminDashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-white">{order.user?.name || 'Unknown'}</div>
                       <div className="text-sm text-gray-400">{order.user?.email}</div>
+                      <div className="text-sm text-gray-400">{order.shippingAddress?.address}</div>
+                      <div className="text-sm text-gray-400">{order.shippingAddress?.city}</div>
+                      <div className="text-sm text-gray-400">{order.shippingAddress?.postalCode}</div>
+                      <div className="text-sm text-gray-400">{order.shippingAddress?.country}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {order.orderItems?.length || 0} items
