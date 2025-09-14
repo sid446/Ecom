@@ -10,6 +10,7 @@ import Hero from "@/components/Hero"
 import NewArrival from "@/components/NewArrival"
 import Categories from "@/components/Categories"
 import PremiumFooter from "@/components/Footer"
+import type { ProductWithStock } from "@/types"
 
 const Instrument = Instrument_Sans({
   subsets: ["latin"],
@@ -19,7 +20,7 @@ const Instrument = Instrument_Sans({
 
 // Updated interface to match API response
 interface ProductsResponse {
-  data: Product[]
+  data: ProductWithStock[]
   pagination: {
     total: number
     page: number
@@ -29,8 +30,8 @@ interface ProductsResponse {
 }
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [allProducts, setAllProducts] = useState<Product[]>([]) // Store all products for filtering
+  const [products, setProducts] = useState<ProductWithStock[]>([])
+  const [allProducts, setAllProducts] = useState<ProductWithStock[]>([]) // Store all products for filtering
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
