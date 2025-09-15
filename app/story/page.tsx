@@ -20,67 +20,26 @@ interface StorySection {
   title: string
   subtitle: string
   content: string
-  year?: string
-  image?: string
-  stats?: { label: string; value: string }[]
 }
 
-const storySection: StorySection = {
-  id: 'beginning',
-  title: 'The Beginning',
-  subtitle: 'Born from a Simple Vision',
-  year: '2018',
-  content: 'It all started in a small studio apartment with a dream to create clothing that tells stories. Our founder, Sarah, believed that fashion should be more than just fabric – it should be an expression of identity, values, and dreams.',
-  stats: [
-    { label: 'First Collection', value: '12 Pieces' },
-    { label: 'Team Size', value: '2 People' },
-    { label: 'Investment', value: '$5,000' }
-  ]
-}
-
-const values = [
+const storyData: StorySection[] = [
   {
-    icon: Heart,
-    title: 'Passionate Craftsmanship',
-    description: 'Every piece is created with love, attention to detail, and respect for the art of fashion.'
+    id: 'beginning',
+    title: 'The Spark',
+    subtitle: 'From a Dorm Room Idea to Reality',
+    content: 'It wasn\'t a boardroom, it was a late-night study session fueled by instant noodles and a shared frustration: Why did all streetwear look the same? Our founders, Alex and Maya, decided to stop complaining and start creating. They envisioned a brand that wasn\'t just about the drip, but about identity – a fusion of digital culture, bold graphics, and conscious creation.',
   },
   {
-    icon: Globe,
-    title: 'Global Responsibility',
-    description: 'We believe in fashion that doesn\'t compromise the future of our planet.'
-  },
-  {
-    icon: Users,
-    title: 'Inclusive Community',
-    description: 'Fashion is for everyone. We celebrate diversity in all its beautiful forms.'
-  },
-  {
-    icon: Sparkles,
-    title: 'Timeless Innovation',
-    description: 'We blend classic elegance with modern innovation to create pieces that transcend trends.'
+    id: 'growth',
+    title: 'The Level Up',
+    subtitle: 'More Than Just a Brand',
+    content: 'Our first drop sold out in 72 hours. But the real moment was seeing our designs in your TikToks, your Insta stories, your digital worlds. We realized we weren\'t just shipping packages; we were building a global crew. A community that values authenticity over hype and isn\'t afraid to challenge the status quo, one graphic tee at a time.',
   }
-]
-
-const testimonials = [
-  {
-    text: "This brand doesn't just make clothes, they create pieces of art that make you feel confident and conscious at the same time.",
-    author: "Maya Chen",
-    role: "Fashion Blogger"
-  },
-  {
-    text: "Finally, a brand that aligns with my values. Every purchase feels like I'm contributing to something bigger.",
-    author: "Alex Rodriguez",
-    role: "Sustainable Living Advocate"
-  },
-  {
-    text: "The quality is exceptional, and knowing it's made ethically makes every piece even more special.",
-    author: "Emma Thompson",
-    role: "Creative Director"
-  }
-]
+];
 
 export default function ScrollOverStoryPage() {
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [activeSection, setActiveSection] = useState(0)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,6 +47,11 @@ export default function ScrollOverStoryPage() {
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight
       const progress = Math.min(scrolled / maxScroll, 1)
       setScrollProgress(progress)
+
+      // Calculate which section should be active based on scroll
+      const sectionHeight = window.innerHeight
+      const currentSection = Math.floor(scrolled / sectionHeight)
+      setActiveSection(Math.min(currentSection, storyData.length - 1))
     }
 
     window.addEventListener('scroll', handleScroll)
@@ -140,68 +104,58 @@ export default function ScrollOverStoryPage() {
       {/* Spacer to enable scrolling */}
       <div className="h-screen"></div>
 
-      {/* Single Story Section */}
+  
       <div className="relative z-20">
-        <section
-          className="min-h-screen flex items-center py-20 bg-gradient-to-t from-black via-gray-950 to-black shadow-2xl"
-          style={{
-            clipPath: 'inset(0 0 0 0 round 0 0 32px 32px)',
-            borderRadius: '0 0 32px 32px'
-          }}
-        >
-          <div className="max-w-7xl mx-auto px-6 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                {storySection.year && (
-                  <div className="inline-block bg-black text-white px-4 py-2 rounded-full transform hover:scale-105 transition-transform">
-                    <span className="text-sm font-semibold">{storySection.year}</span>
-                  </div>
-                )}
-                
+        {storyData.map((section, index) => (
+          <section
+            key={section.id}
+            className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-zinc-900 shadow-2xl border-t border-gray-800/20"
+         
+          >
+            <div className="max-w-4xl mx-auto px-6 text-center">
+              <div className="space-y-8">
                 <div>
-                  <h2 className="text-5xl md:text-6xl font-bold mb-4 leading-tight text-white">
-                    {storySection.title}
+                  <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-white bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    {section.title}
                   </h2>
-                  <h3 className="text-xl md:text-2xl text-gray-400 mb-6 font-light">
-                    {storySection.subtitle}
+                  <h3 className="text-xl md:text-2xl text-gray-300 mb-8 font-light leading-relaxed">
+                    {section.subtitle}
                   </h3>
                 </div>
                 
-                <p className="text-lg text-gray-400 leading-relaxed mb-8">
-                  {storySection.content}
+                <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
+                  {section.content}
                 </p>
-                
-                {storySection.stats && (
-                  <div className="grid grid-cols-3 gap-6">
-                    {storySection.stats.map((stat, statIndex) => (
-                      <div key={statIndex} className="text-center p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-2xl md:text-3xl font-bold text-black mb-2">
-                          {stat.value}
-                        </div>
-                        <div className="text-sm text-gray-500 font-medium">
-                          {stat.label}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-              
-              <div>
-                <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
-                  <div className="aspect-square bg-gradient-to-br from-black/10 to-black/5 rounded-xl flex items-center justify-center">
-                    <div className="text-6xl md:text-8xl font-bold text-black/20">
-                      {storySection.year}
-                    </div>
-                  </div>
-                </div>
+            </div>
+          </section>
+        ))}
+
+        {/* Testimonial Section */}
+        <section className="min-h-screen flex items-center  bg-gradient-to-t from-zinc-900 via-black to-zinc-900 border-t border-gray-800/20">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <Quote className="w-16 h-16 text-white/20 mx-auto mb-8" />
+            <blockquote className="text-3xl md:text-4xl font-light text-white leading-relaxed mb-8">
+              "This isn't just fashion – it's a movement. Every piece tells a story of sustainability, 
+              craftsmanship, and hope for a better future."
+            </blockquote>
+            <div className="flex items-center justify-center space-x-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-white/20 to-white/10 flex items-center justify-center">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <div className="text-left">
+                <div className="text-white font-semibold text-lg">Kashish</div>
+                <div className="text-gray-400">Founder & Creative Director</div>
               </div>
             </div>
           </div>
         </section>
 
+        {/* Call to Action Section */}
+      
+
         {/* Footer */}
-        <footer className="bg-black border-t border-gray-800 py-12 absolute w-full">
+        <footer className="absolute bg-black border-t border-gray-800 py-12 w-full">
           <PremiumFooter/>
         </footer>
       </div>

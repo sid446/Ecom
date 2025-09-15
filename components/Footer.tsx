@@ -14,7 +14,7 @@ function PremiumFooter() {
   };
 
   return (
-    <footer className="bg-black text-white mt-12">
+    <footer className="bg-black text-white ">
       {/* Newsletter Section */}
       <div className="border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -59,11 +59,11 @@ function PremiumFooter() {
               SHOP
             </h3>
             <ul className="space-y-2 sm:space-y-3">
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">All Products</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">New Arrivals</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Clothing</a></li>
+              <li><a href="/" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">All Products</a></li>
+              <li><a href="/" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">New Arrivals</a></li>
+              <li><a href="/" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Clothing</a></li>
               
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Best Sellers</a></li>
+              <li><a href="/" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Best Sellers</a></li>
             </ul>
           </div>
 
@@ -73,11 +73,11 @@ function PremiumFooter() {
               SUPPORT
             </h3>
             <ul className="space-y-2 sm:space-y-3">
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Contact Us</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Size Guide</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Shipping</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Returns</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">FAQ</a></li>
+              <li><a href="/information/contactUs" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Contact Us</a></li>
+              <li><a href="/information/sizeGuide" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Size Guide</a></li>
+              <li><a href="/information/shippingInfo" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Shipping</a></li>
+              
+              
             </ul>
           </div>
 
@@ -87,10 +87,10 @@ function PremiumFooter() {
               BRAND
             </h3>
             <ul className="space-y-2 sm:space-y-3">
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Our Story</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">About Us</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Journal</a></li>
-              <li><a href="#" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Sustainability</a></li>
+              <li><a href="/story" className="text-white hover:text-gray-300 transition-colors duration-300 text-sm sm:text-base">Our Story</a></li>
+              
+             
+              
             </ul>
           </div>
 

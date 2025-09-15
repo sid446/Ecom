@@ -361,7 +361,7 @@ export default function Home() {
           )}
 
           {/* Main Products Area */}
-          <div className="flex-1">
+          <div className="flex-1 mb-6">
             {/* Header with Sort and Filter Button */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
