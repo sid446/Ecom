@@ -1,6 +1,6 @@
 "use client"
 import { Instrument_Sans } from "next/font/google"
-import { useState, useMemo, useRef } from "react"
+import { useState, useMemo, useRef, Dispatch, SetStateAction } from "react"
 import Navbar from "@/components/Navbar"
 import ProductCard from "@/components/ProductCard"
 import { Search, RefreshCw, AlertCircle, Package, X, SlidersHorizontal } from "lucide-react"
@@ -18,14 +18,185 @@ const Instrument = Instrument_Sans({
   variable: "--font-Instrument",
 })
 
+// CHANGE 1: Define a props interface for the FilterSidebar component.
+// This makes the props explicit and provides type safety.
+interface FilterSidebarProps {
+  isMobile?: boolean;
+  setShowFilters: (show: boolean) => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  availableCategories: string[];
+  selectedCategories: string[];
+  handleCategoryToggle: (category: string) => void;
+  priceRange: { min: number; max: number };
+  setPriceRange: Dispatch<SetStateAction<{ min: number; max: number }>>;
+  productPriceRange: { min: number; max: number };
+  filterByStock: "all" | "in-stock" | "low-stock";
+  setFilterByStock: Dispatch<SetStateAction<"all" | "in-stock" | "low-stock">>;
+  clearAllFilters: () => void;
+}
+
+// CHANGE 2: Move the FilterSidebar component OUTSIDE of the Home component.
+// This ensures its definition is stable and doesn't get re-created on every render.
+const FilterSidebar = ({
+  isMobile = false,
+  setShowFilters,
+  searchTerm,
+  setSearchTerm,
+  availableCategories,
+  selectedCategories,
+  handleCategoryToggle,
+  priceRange,
+  setPriceRange,
+  productPriceRange,
+  filterByStock,
+  setFilterByStock,
+  clearAllFilters
+}: FilterSidebarProps) => {
+  const checkboxStyle = {
+    accentColor: 'black'
+  };
+
+  const radioStyle = {
+    accentColor: 'black'
+  };
+
+  const rangeStyle = {
+    accentColor: 'black'
+  };
+
+  return (
+    <div className={`bg-white/70 backdrop-blur-sm ${isMobile ? 'p-4' : 'p-6'} ${isMobile ? '' : 'sticky top-4'} h-fit`}>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
+        <button
+          onClick={() => setShowFilters(false)}
+          className="p-1 hover:bg-[#A69080] rounded-full transition-colors"
+        >
+          <X className="w-5 h-5 text-gray-700" />
+        </button>
+      </div>
+
+      <div className="space-y-6">
+        {/* Search Section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Search</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-white border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-black text-gray-800 placeholder-gray-600"
+            />
+          </div>
+        </div>
+
+        {/* Categories Section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Categories</label>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {availableCategories.map((category: any) => (
+              <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(category)}
+                  onChange={() => handleCategoryToggle(category)}
+                  style={checkboxStyle}
+                  className="w-4 h-4 custom-checkbox bg-white border-[#A69080] rounded focus:ring-black focus:ring-2"
+                />
+                <span className="text-sm text-gray-700 capitalize">{category}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Price Range Section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Price Range</label>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-gray-600">Min Price</label>
+                <input
+                  type="number"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: Math.max(0, Number(e.target.value)) }))}
+                  className="w-full px-3 py-1 bg-white border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-black text-gray-800 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-600">Max Price</label>
+                <input
+                  type="number"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+                  className="w-full px-3 py-1 bg-white border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-black text-gray-800 text-sm"
+                />
+              </div>
+            </div>
+            <input
+              type="range"
+              min={productPriceRange.min}
+              max={productPriceRange.max}
+              value={priceRange.max}
+              onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+              style={rangeStyle}
+              className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer custom-range"
+            />
+            <div className="flex justify-between text-xs text-gray-600">
+              <span>Rs.{productPriceRange.min.toLocaleString()}</span>
+              <span>Rs.{productPriceRange.max.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stock Filter Section */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">Stock Status</label>
+          <div className="space-y-2">
+            {[
+              { value: "all", label: "All Products" },
+              { value: "in-stock", label: "In Stock Only" },
+              { value: "low-stock", label: "Low Stock (≤5)" }
+            ].map((option) => (
+              <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="stockFilter"
+                  value={option.value}
+                  checked={filterByStock === option.value}
+                  onChange={(e) => setFilterByStock(e.target.value as any)}
+                  style={radioStyle}
+                  className="w-4 h-4 custom-radio bg-white border-[#A69080] focus:ring-black focus:ring-2"
+                />
+                <span className="text-sm text-gray-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Clear Filters Button */}
+        <button
+          onClick={clearAllFilters}
+          className="w-full px-4 py-2 bg-black text-white hover:bg-[#7A6449] transition-colors text-sm font-medium rounded-md"
+        >
+          Clear All Filters
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
-  const { 
-    products, 
-    loading, 
-    error, 
-    refetchProducts, 
-    getUniqueCategories, 
-    getPriceRange 
+  const {
+    products,
+    loading,
+    error,
+    refetchProducts,
+    getUniqueCategories,
+    getPriceRange
   } = useProducts()
 
   const [searchTerm, setSearchTerm] = useState("")
@@ -71,16 +242,16 @@ export default function Home() {
     console.log('Selected category:', categoryType) // Debug log
     console.log('Available categories:', availableCategories) // Debug log
     console.log('Products sample:', products.slice(0, 3).map(p => ({ name: p.name, category: p.category }))) // Debug log
-    
+
     // Clear existing filters first (optional - you can remove this if you want to keep other filters)
     setSearchTerm("")
-    
+
     // Set the selected category (already in lowercase from Categories component)
     setSelectedCategories([categoryType])
-    
+
     // Scroll to products section
     if (productsRef.current) {
-      productsRef.current.scrollIntoView({ 
+      productsRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
       })
@@ -90,9 +261,10 @@ export default function Home() {
     // setShowFilters(true)
   }
 
+
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    const filtered = products.filter((product:any) => {
+    const filtered = products.filter((product: any) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -103,16 +275,16 @@ export default function Home() {
         (filterByStock === "in-stock" && stockTotal > 0) ||
         (filterByStock === "low-stock" && stockTotal > 0 && stockTotal <= 5)
 
-      const matchesCategory = 
+      const matchesCategory =
         selectedCategories.length === 0 || selectedCategories.includes(product.category)
 
-      const matchesPrice = 
+      const matchesPrice =
         product.price >= priceRange.min && product.price <= priceRange.max
 
       return matchesSearch && matchesStockFilter && matchesCategory && matchesPrice
     })
 
-    filtered.sort((a:any, b:any) => {
+    filtered.sort((a: any, b: any) => {
       switch (sortBy) {
         case "name":
           return a.name.localeCompare(b.name)
@@ -142,143 +314,21 @@ export default function Home() {
     refetchProducts()
   }
 
-  // Sidebar Filter Component
-  const FilterSidebar = ({ isMobile = false }) => {
-    const checkboxStyle = {
-      accentColor: 'black'
-    };
-
-    const radioStyle = {
-      accentColor: 'black'
-    };
-
-    const rangeStyle = {
-      accentColor: 'black'
-    };
-
-    return (
-      <div className={`bg-white/70 backdrop-blur-sm ${isMobile ? 'p-4' : 'p-6'} ${isMobile ? '' : 'sticky top-4'} h-fit`}>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
-          <button
-            onClick={() => setShowFilters(false)}
-            className="p-1 hover:bg-[#A69080] rounded-full transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-700" />
-          </button>
-        </div>
-
-        <div className="space-y-6">
-          {/* Search Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Search</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-black text-gray-800 placeholder-gray-600"
-              />
-            </div>
-          </div>
-
-          {/* Categories Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Categories</label>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {availableCategories.map((category:any) => (
-                <label key={category} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(category)}
-                    onChange={() => handleCategoryToggle(category)}
-                    style={checkboxStyle}
-                    className="w-4 h-4 custom-checkbox bg-white border-[#A69080] rounded focus:ring-black focus:ring-2"
-                  />
-                  <span className="text-sm text-gray-700 capitalize">{category}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Price Range Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Price Range</label>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-gray-600">Min Price</label>
-                  <input
-                    type="number"
-                    value={priceRange.min}
-                    onChange={(e) => setPriceRange(prev => ({ ...prev, min: Math.max(0, Number(e.target.value)) }))}
-                    className="w-full px-3 py-1 bg-white border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-black text-gray-800 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Max Price</label>
-                  <input
-                    type="number"
-                    value={priceRange.max}
-                    onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
-                    className="w-full px-3 py-1 bg-white border border-[#A69080] rounded-md focus:outline-none focus:ring-2 focus:ring-black text-gray-800 text-sm"
-                  />
-                </div>
-              </div>
-              <input
-                type="range"
-                min={productPriceRange.min}
-                max={productPriceRange.max}
-                value={priceRange.max}
-                onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
-                style={rangeStyle}
-                className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer custom-range"
-              />
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>Rs.{productPriceRange.min.toLocaleString()}</span>
-                <span>Rs.{productPriceRange.max.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Stock Filter Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Stock Status</label>
-            <div className="space-y-2">
-              {[
-                { value: "all", label: "All Products" },
-                { value: "in-stock", label: "In Stock Only" },
-                { value: "low-stock", label: "Low Stock (≤5)" }
-              ].map((option) => (
-                <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="stockFilter"
-                    value={option.value}
-                    checked={filterByStock === option.value}
-                    onChange={(e) => setFilterByStock(e.target.value as any)}
-                    style={radioStyle}
-                    className="w-4 h-4 custom-radio bg-white border-[#A69080] focus:ring-black focus:ring-2"
-                  />
-                  <span className="text-sm text-gray-700">{option.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Clear Filters Button */}
-          <button
-            onClick={clearAllFilters}
-            className="w-full px-4 py-2 bg-black text-white hover:bg-[#7A6449] transition-colors text-sm font-medium rounded-md"
-          >
-            Clear All Filters
-          </button>
-        </div>
-      </div>
-    )
-  }
+  // An object to hold all props for the FilterSidebar to avoid repetition
+  const filterProps = {
+    setShowFilters,
+    searchTerm,
+    setSearchTerm,
+    availableCategories,
+    selectedCategories,
+    handleCategoryToggle,
+    priceRange,
+    setPriceRange,
+    productPriceRange,
+    filterByStock,
+    setFilterByStock,
+    clearAllFilters,
+  };
 
   return (
     <div className={` bg-white ${Instrument.className} scrollbar-hide`}>
@@ -286,7 +336,7 @@ export default function Home() {
         <Navbar />
       </div>
 
-      <main className="container mx-auto scrollbar-hide">
+      <main className="container  mx-auto scrollbar-hide">
         {/* Hero Section */}
         <div className="text-center mb-5">
           <Hero />
@@ -305,7 +355,8 @@ export default function Home() {
           {/* Desktop Sidebar - Only shown when showFilters is true */}
           {showFilters && (
             <aside className="hidden lg:block w-80 flex-shrink-0">
-              <FilterSidebar />
+              {/* CHANGE 3: Pass all necessary state and functions as props */}
+              <FilterSidebar {...filterProps} />
             </aside>
           )}
 
@@ -363,7 +414,8 @@ export default function Home() {
             {showFilters && (
               <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
                 <div className="absolute right-0 top-0 h-full w-80 bg-white overflow-y-auto">
-                  <FilterSidebar isMobile={true} />
+                  {/* CHANGE 3: Pass props to the mobile sidebar as well */}
+                  <FilterSidebar {...filterProps} isMobile={true} />
                 </div>
               </div>
             )}
@@ -372,10 +424,10 @@ export default function Home() {
             {loading && (
               <div className="w-full">
                 <div className={`grid gap-4 sm:gap-6 justify-items-center ${
-                  showFilters 
-                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' 
+                  showFilters
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'
                     : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-                }`}>
+                  }`}>
                   {Array.from({ length: 8 }).map((_, index) => (
                     <ProductSkeleton key={index} />
                   ))}
@@ -403,12 +455,12 @@ export default function Home() {
             {!loading && !error && filteredAndSortedProducts.length > 0 && (
               <div className="w-full">
                 <div className={`grid gap-4 sm:gap-6 justify-items-center ${
-                  showFilters 
-                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' 
+                  showFilters
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'
                     : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-                }`}>
+                  }`}>
                   {filteredAndSortedProducts.map((product) => (
-                    <ProductCard key={product._id} product={product} />
+                    <ProductCard key={product._id} product={product as ProductWithStock} />
                   ))}
                 </div>
               </div>
@@ -432,7 +484,9 @@ export default function Home() {
             )}
           </div>
         </div>
-        <PremiumFooter/>
+        <div className="absolute w-full height-auto ">
+          <PremiumFooter />
+        </div>
       </main>
     </div>
   )
