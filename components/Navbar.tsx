@@ -156,7 +156,14 @@ const Navbar: React.FC = () => {
             {/* Right side - Account and Cart */}
             <div className="flex items-center justify-end flex-shrink-0">
               <div className="flex items-center space-x-1">
-                
+                <Link
+                  href="/account"
+                  className="flex items-center space-x-1 px-2 sm:px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 group"
+                  aria-label="Go to account"
+                >
+                  <User size={20} className="group-hover:scale-110 transition-transform flex-shrink-0" />
+                  <span className="hidden md:inline whitespace-nowrap">Account</span>
+                </Link>
                 
                 <Link
                   href="/cart"
