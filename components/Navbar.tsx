@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useCart } from '@/context/CartContext'
 import { ShoppingCart, Home, Store, X, User, Heart, Package, Menu, Phone, Info } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 const Navbar: React.FC = () => {
   const { getCartItemsCount } = useCart()
@@ -13,6 +13,7 @@ const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+  const router = useRouter()
 
   // Handle scroll effect
   useEffect(() => {
@@ -66,20 +67,48 @@ const Navbar: React.FC = () => {
     setIsMenuOpen(false)
   }, [])
 
-  const isActivePath = (path: string) => pathname === path
+  // Function to scroll to a section on the home page
+  const scrollToSection = useCallback((sectionId: string) => {
+    if (pathname !== '/') {
+      // If not on home page, navigate to home page first
+      router.push('/')
+      // Wait for navigation to complete, then scroll
+      setTimeout(() => {
+        const element = document.getElementById(sectionId)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 300)
+    } else {
+      // If already on home page, scroll directly
+      const element = document.getElementById(sectionId)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+    closeMenu()
+  }, [pathname, router])
+
+  const isActivePath = (path: string, sectionId?: string) => {
+    if (sectionId) {
+      // For Shop and Categories, they're active when on home page
+      return pathname === '/'
+    }
+    return pathname === path
+  }
 
   const menuItems = [
     { href: '/', label: 'Home', icon: Home },
-    { href: '/shop', label: 'Shop', icon: Store },
-    { href: '/categories', label: 'Categories', icon: Store },
-    { href: '/about', label: 'About Us', icon: Info },
-    { href: '/contact', label: 'Contact', icon: Phone },
+    { href: '/', label: 'Shop', icon: Store, sectionId: 'products-section' },
+    { href: '/', label: 'Categories', icon: Store, sectionId: 'categories-section' },
+    { href: '/story', label: 'About Us', icon: Info },
+    { href: '/information/contactUs', label: 'Contact', icon: Phone },
   ]
 
   const accountItems = [
-    { href: '/account', label: 'My Account', icon: User },
+    
     { href: '/orders', label: 'My Orders', icon: Package },
-    { href: '/wishlist', label: 'Wishlist', icon: Heart },
+    
   ]
 
   return (
@@ -200,29 +229,58 @@ const Navbar: React.FC = () => {
                 <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 sm:mb-4">
                   Navigation
                 </h3>
-                {menuItems.map(({ href, label, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={closeMenu}
-                    className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full ${
-                      isActivePath(href)
-                        ? 'bg-black text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400'
-                    }`}
-                  >
-                    <Icon 
-                      size={18} 
-                      className={`group-hover:scale-110 transition-transform flex-shrink-0 ${
-                        isActivePath(href) ? 'text-white' : 'text-gray-500'
-                      }`} 
-                    />
-                    <span className="truncate">{label}</span>
-                    {isActivePath(href) && (
-                      <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />
-                    )}
-                  </Link>
-                ))}
+                {menuItems.map(({ href, label, icon: Icon, sectionId }) => {
+                  if (sectionId) {
+                    // For items with sectionId (Shop, Categories), use button with custom handling
+                    return (
+                      <button
+                        key={href}
+                        onClick={() => scrollToSection(sectionId)}
+                        className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full text-left ${
+                          isActivePath(href, sectionId)
+                            ? 'bg-black text-white shadow-lg'
+                            : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400'
+                        }`}
+                      >
+                        <Icon 
+                          size={18} 
+                          className={`group-hover:scale-110 transition-transform flex-shrink-0 ${
+                            isActivePath(href, sectionId) ? 'text-white' : 'text-gray-500'
+                          }`} 
+                        />
+                        <span className="truncate">{label}</span>
+                        {isActivePath(href, sectionId) && (
+                          <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />
+                        )}
+                      </button>
+                    )
+                  } else {
+                    // For regular items, use Link component
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        onClick={closeMenu}
+                        className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full ${
+                          isActivePath(href)
+                            ? 'bg-black text-white shadow-lg'
+                            : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400'
+                        }`}
+                      >
+                        <Icon 
+                          size={18} 
+                          className={`group-hover:scale-110 transition-transform flex-shrink-0 ${
+                            isActivePath(href) ? 'text-white' : 'text-gray-500'
+                          }`} 
+                        />
+                        <span className="truncate">{label}</span>
+                        {isActivePath(href) && (
+                          <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />
+                        )}
+                      </Link>
+                    )
+                  }
+                })}
               </div>
 
               {/* Account Section */}

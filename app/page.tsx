@@ -346,12 +346,12 @@ export default function Home() {
           <NewArrival products={products} loading={loading} />
         </div>
 
-        <div className="mb-5 sm:mb-5 md:mb-8 lg:mb-10">
+        <div id="categories-section" className=" mb-5 sm:mb-5 md:mb-8 lg:mb-10">
           <Categories onCategorySelect={handleCategorySelect} />
         </div>
 
         {/* Main Content Area - Added ref here */}
-        <div ref={productsRef} className="flex gap-6 px-4 sm:px-5 md:px-7 lg:px-8">
+        <div id="products-section" ref={productsRef} className="flex gap-6 px-4 sm:px-5 md:px-7 lg:px-8">
           {/* Desktop Sidebar - Only shown when showFilters is true */}
           {showFilters && (
             <aside className="hidden lg:block w-80 flex-shrink-0">
@@ -361,7 +361,7 @@ export default function Home() {
           )}
 
           {/* Main Products Area */}
-          <div className="flex-1 mb-6">
+          <div className=" flex-1 mb-6">
             {/* Header with Sort and Filter Button */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
