@@ -336,9 +336,9 @@ export default function Home() {
         <Navbar />
       </div>
 
-      <main className="container  mx-auto scrollbar-hide">
+      <main className="container min-w-screen  mx-auto scrollbar-hide">
         {/* Hero Section */}
-        <div className="text-center w-screen mb-5">
+        <div className="text-center  mb-5">
           <Hero />
         </div>
 
