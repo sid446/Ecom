@@ -95,7 +95,7 @@ export default function OrderSummary({
               </div>
               <p className={`text-sm font-semibold text-white transition-colors duration-200 flex-shrink-0
                 ${isProcessing ? 'text-zinc-400' : ''}`}>
-                ${(item.price * item.quantity).toFixed(2)}
+                ₹{(item.price * item.quantity).toFixed(2)}
               </p>
             </div>
           ))}
@@ -118,7 +118,7 @@ export default function OrderSummary({
                 </p>
                 <p className={`text-xs transition-colors duration-200
                   ${isProcessing ? 'text-zinc-500' : 'text-green-200'}`}>
-                  You've saved $10 on shipping
+                  You've saved ₹10 on shipping
                 </p>
               </div>
             </div>
@@ -135,7 +135,7 @@ export default function OrderSummary({
             </span>
             <span className={`font-medium transition-colors duration-200
               ${isProcessing ? 'text-zinc-400' : 'text-white'}`}>
-              ${subtotal.toFixed(2)}
+              ₹{subtotal.toFixed(2)}
             </span>
           </div>
           
@@ -153,7 +153,7 @@ export default function OrderSummary({
                   Free
                 </span>
               ) : (
-                `$${shipping.toFixed(2)}`
+                `₹${shipping.toFixed(2)}`
               )}
             </span>
           </div>
@@ -166,7 +166,7 @@ export default function OrderSummary({
             </span>
             <span className={`font-medium transition-colors duration-200
               ${isProcessing ? 'text-zinc-400' : 'text-white'}`}>
-              ${tax.toFixed(2)}
+              ₹{tax.toFixed(2)}
             </span>
           </div>
           
@@ -181,7 +181,7 @@ export default function OrderSummary({
               </span>
               <span className={`text-lg sm:text-xl font-bold text-white transition-colors duration-200
                 ${isProcessing ? 'text-zinc-400' : ''}`}>
-                ${total.toFixed(2)}
+                ₹{total.toFixed(2)}
               </span>
             </div>
           </div>
