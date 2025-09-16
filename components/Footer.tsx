@@ -142,16 +142,16 @@ function PremiumFooter() {
 
             {/* Legal Links */}
             <div className="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-xs sm:text-sm order-2 md:order-none">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">
+              <a href="/information/privacypolicy" className="text-gray-400 hover:text-white transition-colors duration-300">
                 Privacy Policy
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">
+              <a href="/information/terms" className="text-gray-400 hover:text-white transition-colors duration-300">
                 Terms of Service
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">
+              <a href="/information/cookies" className="text-gray-400 hover:text-white transition-colors duration-300">
                 Cookie Settings
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">
+              <a href="/information/accessibility" className="text-gray-400 hover:text-white transition-colors duration-300">
                 Accessibility
               </a>
             </div>
