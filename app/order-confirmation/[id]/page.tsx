@@ -346,11 +346,11 @@ export default function OrderConfirmation() {
                         <div>
                           <p className="font-semibold text-white">{item.name}</p>
                           <p className="text-sm text-zinc-400">Quantity: {item.quantity}</p>
-                          <p className="text-sm text-zinc-400">Unit Price: ${item.price.toFixed(2)}</p>
+                          <p className="text-sm text-zinc-400">Unit Price: ₹{item.price.toFixed(2)}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-white">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-lg font-bold text-white">₹{(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
                   ))}
@@ -360,7 +360,7 @@ export default function OrderConfirmation() {
                 <div className="bg-zinc-800/50 p-6 border-t border-zinc-700">
                   <div className="flex justify-between items-center">
                     <span className="text-xl font-bold text-white">Order Total:</span>
-                    <span className="text-2xl font-bold text-white">${order.totalPrice.toFixed(2)}</span>
+                    <span className="text-2xl font-bold text-white">₹{order.totalPrice.toFixed(2)}</span>
                   </div>
                   <p className="text-sm text-zinc-400 mt-1">Payment Method: {order.paymentMethod.toUpperCase()}</p>
                 </div>

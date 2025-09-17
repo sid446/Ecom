@@ -5,7 +5,6 @@ import {
   Loader2,
   Package,
   Truck,
-  CreditCard,
   Shield,
   Tag,
   Clock
@@ -19,12 +18,18 @@ interface CartItem {
   image: string
 }
 
+interface AppliedCouponInfo {
+  code: string;
+  amount: number;
+}
+
+// The 'tax' property has been removed from this interface
 interface OrderSummaryProps {
   cart: CartItem[]
   subtotal: number
   shipping: number
-  tax: number
   total: number
+  coupon?: AppliedCouponInfo | null
   loading: boolean
   sendingOtp: boolean
   verifyingOtp: boolean
@@ -34,8 +39,8 @@ export default function OrderSummary({
   cart,
   subtotal,
   shipping,
-  tax,
   total,
+  coupon,
   loading,
   sendingOtp,
   verifyingOtp
@@ -90,7 +95,7 @@ export default function OrderSummary({
                 </p>
                 <p className={`text-xs text-zinc-400 transition-colors duration-200
                   ${isProcessing ? 'text-zinc-500' : ''}`}>
-                  ${item.price.toFixed(2)} × {item.quantity}
+                  ₹{item.price.toFixed(2)} × {item.quantity}
                 </p>
               </div>
               <p className={`text-sm font-semibold text-white transition-colors duration-200 flex-shrink-0
@@ -139,6 +144,18 @@ export default function OrderSummary({
             </span>
           </div>
           
+          {coupon && coupon.amount > 0 && (
+            <div className="flex justify-between text-sm text-green-400">
+              <span className={`flex items-center transition-colors duration-200 ${isProcessing ? 'text-zinc-500' : ''}`}>
+                <Tag className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                Coupon ({coupon.code}):
+              </span>
+              <span className={`font-medium transition-colors duration-200 ${isProcessing ? 'text-zinc-400' : ''}`}>
+                -₹{coupon.amount.toFixed(2)}
+              </span>
+            </div>
+          )}
+
           <div className="flex justify-between text-sm">
             <span className={`text-zinc-400 flex items-center transition-colors duration-200
               ${isProcessing ? 'text-zinc-500' : ''}`}>
@@ -158,17 +175,7 @@ export default function OrderSummary({
             </span>
           </div>
           
-          <div className="flex justify-between text-sm">
-            <span className={`text-zinc-400 flex items-center transition-colors duration-200
-              ${isProcessing ? 'text-zinc-500' : ''}`}>
-              <CreditCard className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-              Tax:
-            </span>
-            <span className={`font-medium transition-colors duration-200
-              ${isProcessing ? 'text-zinc-400' : 'text-white'}`}>
-              ₹{tax.toFixed(2)}
-            </span>
-          </div>
+          {/* TAX DISPLAY BLOCK HAS BEEN REMOVED */}
           
           {/* Total */}
           <div className={`border-t border-zinc-700 pt-2 sm:pt-3 bg-zinc-800/50 -mx-4 px-4 py-3 mt-3 sm:-mx-6 sm:px-6 sm:py-4 sm:mt-4

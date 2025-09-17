@@ -18,7 +18,7 @@ const OrderSchema = new mongoose.Schema({
   orderItems: [{
     name: { type: String, required: true },
     quantity: { type: Number, required: true },
-    size: { type: String, required: true }, // Added this line to store the product size
+    size: { type: String, required: true },
     image: { type: String, required: true },
     price: { type: Number, required: true },
     product: {
@@ -37,6 +37,21 @@ const OrderSchema = new mongoose.Schema({
     type: String,
     required: true,
     default: 'Cash on Delivery',
+  },
+  // Enhanced pricing fields for coupon support
+  originalAmount: {
+    type: Number,
+    default: 0.0,
+  },
+  couponCode: {
+    type: String,
+    uppercase: true,
+    trim: true,
+    default: null,
+  },
+  couponDiscount: {
+    type: Number,
+    default: 0.0,
   },
   totalPrice: {
     type: Number,
@@ -68,5 +83,10 @@ const OrderSchema = new mongoose.Schema({
 }, {
   timestamps: true,
 })
+
+// Add indexes for coupon queries
+OrderSchema.index({ user: 1, couponCode: 1 });
+OrderSchema.index({ couponCode: 1 });
+OrderSchema.index({ user: 1, createdAt: -1 });
 
 export default mongoose.models.Order || mongoose.model('Order', OrderSchema)

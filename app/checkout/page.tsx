@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
-import { useCart } from '@/context/CartContext'
+import { useCart } from '@/context/CartContext' // Assuming context is in this path
 import ShippingForm from '@/components/checkout/ShippingForm'
 import OrderReview from '@/components/checkout/OrderReview'
 import OrderSummary from '@/components/checkout/OrderSummary'
@@ -14,7 +14,6 @@ import {
   Loader2
 } from 'lucide-react'
 
-// Add Razorpay types
 declare global {
   interface Window {
     Razorpay: any;
@@ -27,7 +26,8 @@ interface FormErrors {
 
 export default function Checkout() {
   const router = useRouter()
-  const { cart, getCartTotal, clearCart } = useCart()
+  const { cart, clearCart, appliedCoupon, getCartCalculations } = useCart()
+
   const [loading, setLoading] = useState(false)
   const [sendingOtp, setSendingOtp] = useState(false)
   const [verifyingOtp, setVerifyingOtp] = useState(false)
@@ -40,22 +40,13 @@ export default function Checkout() {
   const [otpError, setOtpError] = useState('')
   
   const [formData, setFormData] = useState<CustomerInfo>({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: 'INDIA',
+    name: '', email: '', phone: '', address: '', city: '', postalCode: '', country: 'INDIA',
   })
 
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'card'>('cod')
 
-  // Calculate totals
-  const subtotal = getCartTotal()
-  const shipping = subtotal > 100 ? 0 : 10
-  const tax = subtotal * 0.08
-  const total = subtotal + shipping + tax
+  // --- CHANGE 1: 'shipping' has been removed from the destructuring ---
+  const { subtotal, couponDiscount, total } = getCartCalculations();
 
   // Load Razorpay script
   useEffect(() => {
@@ -63,207 +54,102 @@ export default function Checkout() {
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
+    return () => { document.body.removeChild(script); };
   }, []);
 
   // OTP countdown timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (otpCountdown > 0) {
-      interval = setInterval(() => {
-        setOtpCountdown((prev) => prev - 1);
-      }, 1000);
+      interval = setInterval(() => setOtpCountdown((prev) => prev - 1), 1000);
     }
     return () => clearInterval(interval);
   }, [otpCountdown]);
 
   const sendOtp = async () => {
+    setSendingOtp(true); setOtpError('');
     try {
-      setSendingOtp(true)
-      setOtpError('')
-
       const response = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to send OTP')
-      }
-
-      setOtpSent(true)
-      setOtpCountdown(120) // 2 minutes countdown
-      
-      // For development - show OTP in console if returned
-      if (data.otp && process.env.NODE_ENV === 'development') {
-        console.log('Development OTP:', data.otp)
-        setOtp(data.otp) // Auto-fill for testing
-      }
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to send OTP');
+      setOtpSent(true); setOtpCountdown(120);
+      if (data.otp && process.env.NODE_ENV === 'development') setOtp(data.otp);
     } catch (error) {
-      console.error('Error sending OTP:', error)
-      setOtpError(error instanceof Error ? error.message : 'Failed to send OTP. Please try again.')
+      setOtpError(error instanceof Error ? error.message : 'Failed to send OTP.');
     } finally {
-      setSendingOtp(false)
+      setSendingOtp(false);
     }
   }
 
   const verifyOtp = async () => {
+    setVerifyingOtp(true); setOtpError('');
     try {
-      setVerifyingOtp(true)
-      setOtpError('')
-      
-      if (otp.length !== 6) {
-        throw new Error('Please enter a 6-digit code')
-      }
-
+      if (otp.length !== 6) throw new Error('Please enter a 6-digit code');
       const response = await fetch('/api/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email: formData.email, 
-          otp 
-        }),
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Invalid OTP')
-      }
-
-      setOtpVerified(true)
-      setCurrentStep(2)
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: formData.email, otp }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Invalid OTP');
+      setOtpVerified(true); setCurrentStep(2);
     } catch (error) {
-      console.error('Error verifying OTP:', error)
-      setOtpError(error instanceof Error ? error.message : 'Invalid OTP. Please try again.')
+      setOtpError(error instanceof Error ? error.message : 'Invalid OTP.');
     } finally {
-      setVerifyingOtp(false)
+      setVerifyingOtp(false);
     }
   }
 
   const handleShippingSubmit = async () => {
-    // If OTP not sent yet, send it
-    if (!otpSent) {
-      await sendOtp()
-      return
-    }
-
-    // If OTP sent but not verified, verify it
-    if (!otpVerified) {
-      await verifyOtp()
-      return
-    }
-
-    // If OTP is verified, proceed to review step
-    setCurrentStep(2)
+    if (!otpSent) { await sendOtp(); return; }
+    if (!otpVerified) { await verifyOtp(); return; }
+    setCurrentStep(2);
   }
 
-  // Create Razorpay order
   const createRazorpayOrder = async () => {
-    try {
-      const response = await fetch('/api/create-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: total * 100, // Amount in paise
-          currency: 'INR',
-        }),
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create payment order')
-      }
-
-      return data.orderId
-    } catch (error) {
-      console.error('Error creating Razorpay order:', error)
-      throw error
-    }
+    const response = await fetch('/api/create-order', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: total * 100, currency: 'INR' }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to create payment order');
+    return data.orderId;
   }
 
-  // Handle Razorpay payment
   const handleRazorpayPayment = async () => {
     try {
-      const orderId = await createRazorpayOrder()
-
+      const orderId = await createRazorpayOrder();
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: total * 100, // Amount in paise
-        currency: 'INR',
-        name: 'Your Store Name',
-        description: 'Purchase from Your Store',
-        order_id: orderId,
-        handler: async (response: any) => {
-          // Payment successful
-          await handleOrderSubmitAfterPayment(response)
-        },
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: formData.phone,
-        },
-        notes: {
-          address: formData.address,
-        },
-        theme: {
-          color: '#000000',
-        },
-        modal: {
-          ondismiss: () => {
-            console.log('Payment modal closed')
-            setLoading(false)
-          },
-        },
-      }
-
-      const razorpay = new window.Razorpay(options)
-      razorpay.open()
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, amount: total * 100, currency: 'INR', name: 'Your Store Name',
+        description: 'Purchase from Your Store', order_id: orderId, handler: (response: any) => handleOrderSubmitAfterPayment(response),
+        prefill: { name: formData.name, email: formData.email, contact: formData.phone },
+        notes: { address: formData.address }, theme: { color: '#000000' }, modal: { ondismiss: () => setLoading(false) },
+      };
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (error) {
-      console.error('Error initializing Razorpay:', error)
-      setErrors({ submit: 'Failed to initialize payment. Please try again.' })
-      setLoading(false)
+      setErrors({ submit: 'Failed to initialize payment. Please try again.' });
+      setLoading(false);
     }
   }
 
-  // Handle order submission after successful payment
   const handleOrderSubmitAfterPayment = async (paymentResponse?: any) => {
     try {
       const orderData = {
         customerInfo: formData,
         orderItems: cart.map(item => ({
-          product: item._id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          image: item.imagefront,
-          size: item.selectedSize,
+          product: item._id, name: item.name, quantity: item.quantity, price: item.price,
+          image: item.imagefront, size: item.selectedSize,
         })),
         totalPrice: total,
         subtotal,
-        shipping,
-        tax,
+        // --- CHANGE 2: 'shipping' is now hardcoded to 0 for backend consistency ---
+        shipping: 0,
+        couponDiscount,
+        couponCode: appliedCoupon?.code || '',
         paymentMethod,
         shippingAddress: {
-          address: formData.address,
-          city: formData.city,
-          postalCode: formData.postalCode,
-          country: formData.country,
+          address: formData.address, city: formData.city, postalCode: formData.postalCode, country: formData.country,
         },
-        // Add payment details if it's a card payment
         ...(paymentMethod === 'card' && paymentResponse && {
           paymentDetails: {
             razorpay_order_id: paymentResponse.razorpay_order_id,
@@ -271,153 +157,91 @@ export default function Checkout() {
             razorpay_signature: paymentResponse.razorpay_signature,
           }
         })
-      }
+      };
 
       const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      })
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData),
+      });
 
       if (response.ok) {
-        const order = await response.json()
-        clearCart()
-        router.push(`/order-confirmation/${order._id}`)
+        const order = await response.json();
+        clearCart();
+        router.push(`/order-confirmation/${order._id}`);
       } else {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to place order')
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to place order');
       }
     } catch (error) {
-      console.error('Error placing order:', error)
-      setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order. Please try again.' })
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order.' });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    setLoading(true)
-    setErrors({})
-
+    e.preventDefault();
+    setLoading(true); setErrors({});
     try {
       if (paymentMethod === 'card') {
-        // Handle Razorpay payment
-        await handleRazorpayPayment()
+        await handleRazorpayPayment();
       } else {
-        // Handle COD
-        await handleOrderSubmitAfterPayment()
+        await handleOrderSubmitAfterPayment();
       }
     } catch (error) {
-      console.error('Error processing order:', error)
-      setErrors({ submit: error instanceof Error ? error.message : 'Failed to process order. Please try again.' })
-      setLoading(false)
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to process order.' });
+      setLoading(false);
     }
   }
 
-  if (cart.length === 0) {
+  if (cart.length === 0 && !loading) {
     return (
       <div className="min-h-screen bg-black text-white">
         <Navbar />
         <main className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="max-w-md mx-auto text-center">
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-lg p-8">
-              <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                <ShoppingBag className="w-10 h-10 text-zinc-500" />
-              </div>
+              <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6"><ShoppingBag className="w-10 h-10 text-zinc-500" /></div>
               <h1 className="text-2xl font-bold text-white mb-2">Your cart is empty</h1>
-              <p className="text-zinc-400 mb-8">Add some items to your cart before checking out.</p>
-              <Link
-                href="/"
-                className="inline-flex items-center bg-white text-black px-6 py-3 rounded-md hover:bg-zinc-200 transition-colors duration-200 font-semibold"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Continue Shopping
-              </Link>
+              <p className="text-zinc-400 mb-8">Add items to your cart before checking out.</p>
+              <Link href="/" className="inline-flex items-center bg-white text-black px-6 py-3 rounded-md hover:bg-zinc-200 transition-colors duration-200 font-semibold"><ArrowLeft className="w-4 h-4 mr-2" />Continue Shopping</Link>
             </div>
           </div>
         </main>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen pt-10 bg-gradient-to-b from-black via-zinc-900 to-black text-white">
       <Navbar />
-      
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <Link
-            href="/cart"
-            className="inline-flex items-center text-zinc-400 hover:text-white transition-colors duration-200 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Cart
-          </Link>
+          <Link href="/cart" className="inline-flex items-center text-zinc-400 hover:text-white transition-colors duration-200 mb-4"><ArrowLeft className="w-4 h-4 mr-2" />Back to Cart</Link>
           <h1 className="text-3xl lg:text-4xl font-bold text-white">Checkout</h1>
-          
-          {/* Enhanced Progress Steps */}
           <div className="flex items-center mt-6 space-x-4">
-            <div className={`flex items-center ${currentStep >= 1 ? 'text-white' : 'text-zinc-500'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-200
-                ${currentStep >= 1 ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
-                {sendingOtp || verifyingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : '1'}
-              </div>
-              <span className="ml-3 font-medium">Shipping & Verification</span>
-            </div>
+            <div className={`flex items-center ${currentStep >= 1 ? 'text-white' : 'text-zinc-500'}`}><div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-200 ${currentStep >= 1 ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>{sendingOtp || verifyingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : '1'}</div><span className="ml-3 font-medium">Shipping & Verification</span></div>
             <div className={`flex-1 h-0.5 transition-colors duration-200 ${currentStep >= 2 ? 'bg-white' : 'bg-zinc-700'}`} />
-            <div className={`flex items-center ${currentStep >= 2 ? 'text-white' : 'text-zinc-500'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-200
-                ${currentStep >= 2 ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
-                {loading && currentStep === 2 ? <Loader2 className="w-4 h-4 animate-spin" /> : '2'}
-              </div>
-              <span className="ml-3 font-medium">Review & Payment</span>
-            </div>
+            <div className={`flex items-center ${currentStep >= 2 ? 'text-white' : 'text-zinc-500'}`}><div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all duration-200 ${currentStep >= 2 ? 'bg-white text-black border-white' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>{loading && currentStep === 2 ? <Loader2 className="w-4 h-4 animate-spin" /> : '2'}</div><span className="ml-3 font-medium">Review & Payment</span></div>
           </div>
         </div>
         
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="xl:col-span-2">
             {currentStep === 1 ? (
-              <ShippingForm
-                formData={formData}
-                setFormData={setFormData}
-                onSubmit={handleShippingSubmit}
-                sendingOtp={sendingOtp}
-                verifyingOtp={verifyingOtp}
-                otp={otp}
-                setOtp={setOtp}
-                otpSent={otpSent}
-                otpVerified={otpVerified}
-                otpCountdown={otpCountdown}
-                otpError={otpError}
-                onVerifyOtp={verifyOtp}
-                onSendOtp={sendOtp}
-              />
+              <ShippingForm formData={formData} setFormData={setFormData} onSubmit={handleShippingSubmit} sendingOtp={sendingOtp} verifyingOtp={verifyingOtp} otp={otp} setOtp={setOtp} otpSent={otpSent} otpVerified={otpVerified} otpCountdown={otpCountdown} otpError={otpError} onVerifyOtp={verifyOtp} onSendOtp={sendOtp}/>
             ) : (
-              <OrderReview
-                formData={formData}
-                paymentMethod={paymentMethod}
-                setPaymentMethod={setPaymentMethod}
-                loading={loading}
-                errors={errors}
-                onEditDetails={() => setCurrentStep(1)}
-                onSubmit={handleOrderSubmit}
-              />
+              <OrderReview formData={formData} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} loading={loading} errors={errors} onEditDetails={() => setCurrentStep(1)} onSubmit={handleOrderSubmit}/>
             )}
           </div>
           
-          {/* Enhanced Order Summary Sidebar */}
           <div className="xl:col-span-1">
             <OrderSummary
               cart={cart}
               subtotal={subtotal}
-              shipping={shipping}
-              tax={tax}
+              // --- CHANGE 3: The 'shipping' prop is no longer passed. Set to 0. ---
+              shipping={0}
               total={total}
+              coupon={appliedCoupon}
               loading={loading}
               sendingOtp={sendingOtp}
               verifyingOtp={verifyingOtp}
