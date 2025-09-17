@@ -12,7 +12,8 @@ import {
   Edit3,
   Shield,
   Package,
-  Clock
+  Clock,
+  CheckCircle
 } from 'lucide-react'
 
 interface CustomerInfo {
@@ -135,6 +136,7 @@ export default function OrderReview({
             Payment Method
           </h3>
           <div className="space-y-3">
+            {/* Cash on Delivery */}
             <label className={`group flex items-start sm:items-center p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all duration-200
               ${paymentMethod === 'cod' ? 'border-green-500 bg-green-900/20' : 'border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50'}
               ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
@@ -165,15 +167,14 @@ export default function OrderReview({
                 {paymentMethod === 'cod' && (
                   <div className="ml-3 flex-shrink-0">
                     <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                      <CheckCircle className="w-4 h-4 text-white" />
                     </div>
                   </div>
                 )}
               </div>
             </label>
             
+            {/* Online Payment with Razorpay */}
             <label className={`group flex items-start sm:items-center p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all duration-200
               ${paymentMethod === 'card' ? 'border-blue-500 bg-blue-900/20' : 'border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50'}
               ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
@@ -198,15 +199,62 @@ export default function OrderReview({
                   <CreditCard className={`w-4 h-4 sm:w-5 sm:h-5 ${paymentMethod === 'card' ? 'text-blue-400' : 'text-zinc-400'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white">Credit/Debit Card</p>
-                  <p className="text-sm text-zinc-400">Secure online payment</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-medium text-white">Online Payment</p>
+                    <div className="bg-blue-900 text-blue-400 px-2 py-0.5 rounded text-xs font-medium">
+                      Secure
+                    </div>
+                  </div>
+                  <p className="text-sm text-zinc-400 mb-2">Credit/Debit Card, UPI, Net Banking</p>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-zinc-500">Powered by</span>
+                    <span className="text-xs font-medium text-blue-400">Razorpay</span>
+                  </div>
                 </div>
-                <div className="bg-yellow-900 text-yellow-400 px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium flex-shrink-0 ml-2">
-                  Coming Soon
-                </div>
+                {paymentMethod === 'card' && (
+                  <div className="ml-3 flex-shrink-0">
+                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                )}
               </div>
             </label>
           </div>
+
+          {/* Payment Method Info */}
+          {paymentMethod === 'card' && (
+            <div className="mt-4 bg-blue-900/20 border border-blue-800 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start">
+                <Shield className="w-5 h-5 text-blue-400 mr-3 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-medium text-blue-300">Secure Online Payment</h4>
+                    {process.env.NODE_ENV === 'development' && (
+                      <span className="bg-orange-900 text-orange-400 px-2 py-1 rounded text-xs font-medium">
+                        TEST MODE
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-blue-200 mb-2">
+                    Your payment will be processed securely through Razorpay. We support all major payment methods.
+                  </p>
+                  {process.env.NODE_ENV === 'development' && (
+                    <p className="text-xs text-orange-300 mb-2 bg-orange-900/20 p-2 rounded">
+                      🧪 <strong>Test Mode:</strong> Use card 4111 1111 1111 1111 with any future expiry and CVV
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2 text-xs text-blue-300">
+                    <span className="bg-blue-800 px-2 py-1 rounded">Credit Cards</span>
+                    <span className="bg-blue-800 px-2 py-1 rounded">Debit Cards</span>
+                    <span className="bg-blue-800 px-2 py-1 rounded">UPI</span>
+                    <span className="bg-blue-800 px-2 py-1 rounded">Net Banking</span>
+                    <span className="bg-blue-800 px-2 py-1 rounded">Wallets</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Security Information */}
@@ -238,27 +286,34 @@ export default function OrderReview({
         <form onSubmit={onSubmit}>
           <button
             type="submit"
-            disabled={loading || paymentMethod === 'card'}
+            disabled={loading}
             className="w-full bg-white text-black py-3 sm:py-4 px-4 sm:px-6 rounded-lg disabled:bg-zinc-600 disabled:text-zinc-400 disabled:cursor-not-allowed transition-all duration-200 font-semibold text-base sm:text-lg flex items-center justify-center hover:bg-zinc-200"
           >
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin mr-3" />
-                <span>Placing Your Order...</span>
+                <span>
+                  {paymentMethod === 'card' ? 'Processing Payment...' : 'Placing Your Order...'}
+                </span>
               </>
             ) : (
               <>
                 <Lock className="w-5 h-5 mr-3" />
-                <span className="text-center">{paymentMethod === 'card' ? 'Payment Method Coming Soon' : 'Place Order Securely'}</span>
+                <span className="text-center">
+                  {paymentMethod === 'card' ? 'Proceed to Payment' : 'Place Order Securely'}
+                </span>
               </>
             )}
           </button>
           
-          {paymentMethod === 'cod' && (
-            <p className="text-center text-xs sm:text-sm text-zinc-400 mt-3 sm:mt-4 px-2">
-              By placing this order, you agree to our terms of service and privacy policy.
-            </p>
-          )}
+          <p className="text-center text-xs sm:text-sm text-zinc-400 mt-3 sm:mt-4 px-2">
+            By placing this order, you agree to our terms of service and privacy policy.
+            {paymentMethod === 'card' && (
+              <span className="block mt-1">
+                You will be redirected to Razorpay for secure payment processing.
+              </span>
+            )}
+          </p>
         </form>
       </div>
     </div>

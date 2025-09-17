@@ -14,6 +14,13 @@ import {
   Loader2
 } from 'lucide-react'
 
+// Add Razorpay types
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 interface FormErrors {
   [key: string]: string
 }
@@ -49,6 +56,18 @@ export default function Checkout() {
   const shipping = subtotal > 100 ? 0 : 10
   const tax = subtotal * 0.08
   const total = subtotal + shipping + tax
+
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   // OTP countdown timer
   useEffect(() => {
@@ -149,11 +168,79 @@ export default function Checkout() {
     setCurrentStep(2)
   }
 
-  const handleOrderSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    setLoading(true)
+  // Create Razorpay order
+  const createRazorpayOrder = async () => {
+    try {
+      const response = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: total * 100, // Amount in paise
+          currency: 'INR',
+        }),
+      })
 
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create payment order')
+      }
+
+      return data.orderId
+    } catch (error) {
+      console.error('Error creating Razorpay order:', error)
+      throw error
+    }
+  }
+
+  // Handle Razorpay payment
+  const handleRazorpayPayment = async () => {
+    try {
+      const orderId = await createRazorpayOrder()
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: total * 100, // Amount in paise
+        currency: 'INR',
+        name: 'Your Store Name',
+        description: 'Purchase from Your Store',
+        order_id: orderId,
+        handler: async (response: any) => {
+          // Payment successful
+          await handleOrderSubmitAfterPayment(response)
+        },
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        notes: {
+          address: formData.address,
+        },
+        theme: {
+          color: '#000000',
+        },
+        modal: {
+          ondismiss: () => {
+            console.log('Payment modal closed')
+            setLoading(false)
+          },
+        },
+      }
+
+      const razorpay = new window.Razorpay(options)
+      razorpay.open()
+    } catch (error) {
+      console.error('Error initializing Razorpay:', error)
+      setErrors({ submit: 'Failed to initialize payment. Please try again.' })
+      setLoading(false)
+    }
+  }
+
+  // Handle order submission after successful payment
+  const handleOrderSubmitAfterPayment = async (paymentResponse?: any) => {
     try {
       const orderData = {
         customerInfo: formData,
@@ -163,8 +250,7 @@ export default function Checkout() {
           quantity: item.quantity,
           price: item.price,
           image: item.imagefront,
-          // Add the selectedSize here
-          size: item.selectedSize, 
+          size: item.selectedSize,
         })),
         totalPrice: total,
         subtotal,
@@ -177,6 +263,14 @@ export default function Checkout() {
           postalCode: formData.postalCode,
           country: formData.country,
         },
+        // Add payment details if it's a card payment
+        ...(paymentMethod === 'card' && paymentResponse && {
+          paymentDetails: {
+            razorpay_order_id: paymentResponse.razorpay_order_id,
+            razorpay_payment_id: paymentResponse.razorpay_payment_id,
+            razorpay_signature: paymentResponse.razorpay_signature,
+          }
+        })
       }
 
       const response = await fetch('/api/orders', {
@@ -199,6 +293,27 @@ export default function Checkout() {
       console.error('Error placing order:', error)
       setErrors({ submit: error instanceof Error ? error.message : 'Failed to place order. Please try again.' })
     } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOrderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    setLoading(true)
+    setErrors({})
+
+    try {
+      if (paymentMethod === 'card') {
+        // Handle Razorpay payment
+        await handleRazorpayPayment()
+      } else {
+        // Handle COD
+        await handleOrderSubmitAfterPayment()
+      }
+    } catch (error) {
+      console.error('Error processing order:', error)
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to process order. Please try again.' })
       setLoading(false)
     }
   }

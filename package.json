@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@cashfreepayments/cashfree-sdk": "^0.1.7",
     "@types/jsonwebtoken": "^9.0.10",
+    "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.540.0",
@@ -20,7 +22,8 @@
     "razorpay": "^2.9.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "twilio": "^5.8.0"
+    "twilio": "^5.8.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -30,6 +33,7 @@
     "@types/nodemailer": "^7.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.0",
     "tailwindcss": "^4",

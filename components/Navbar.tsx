@@ -98,9 +98,9 @@ const Navbar: React.FC = () => {
   }
 
   const menuItems = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/', label: 'Shop', icon: Store, sectionId: 'products-section' },
-    { href: '/', label: 'Categories', icon: Store, sectionId: 'categories-section' },
+    { href: '/home', label: 'Home', icon: Home },
+    { href: '/shop', label: 'Shop', icon: Store, sectionId: 'products-section' },
+    { href: '/categories', label: 'Categories', icon: Store, sectionId: 'categories-section' },
     { href: '/story', label: 'About Us', icon: Info },
     { href: '/information/contactUs', label: 'Contact', icon: Phone },
   ]
