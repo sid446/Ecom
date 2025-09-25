@@ -1,3 +1,5 @@
+// File: /api/orders/route.ts
+
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/mongodb'
 import Order from '@/models/Order'
@@ -29,8 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     // --- Create the order ---
-    // The `orderItems` array from the request should now include the `size` property.
-    // Mongoose will automatically map it based on the updated schema.
+    // The `track` field will automatically default to `null` as per your schema.
     const order = new Order({
       user: user._id,
       orderItems,
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
           orderItems: orderItems.map((item: any) => ({
             name: item.name,
             quantity: item.quantity,
-            size: item.size, // <-- Updated this line to include size in the email
+            size: item.size, 
             price: item.price,
             image: item.image,
           })),

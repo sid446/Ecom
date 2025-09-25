@@ -5,6 +5,7 @@ import { Kalnia } from 'next/font/google'; // Import Kalnia
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ProductsProvider} from '@/context/ProductContext';
+import { UserProvider } from '@/context/UserContext';
 
 // Configure the Kalnia font to be used as a CSS variable
 const kalnia = Kalnia({
@@ -27,9 +28,11 @@ export default function RootLayout({
     <html lang="en">
       {/* Apply the font variable to the entire body tag */}
       <body className={kalnia.variable}>
+        <UserProvider>
         <ProductsProvider cacheStrategy="session" cacheDuration={30}>
           <CartProvider>{children}</CartProvider>
         </ProductsProvider>
+        </UserProvider>
       </body>
     </html>
   );

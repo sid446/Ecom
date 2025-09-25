@@ -25,10 +25,12 @@ interface CustomerInfo {
   country: string
 }
 
+// --- MODIFIED: Added isAuthenticated prop ---
 interface ShippingFormProps {
   formData: CustomerInfo
   setFormData: (data: CustomerInfo | ((prev: CustomerInfo) => CustomerInfo)) => void
   onSubmit: () => void
+  isAuthenticated: boolean // This prop is new
   sendingOtp: boolean
   verifyingOtp: boolean
   otp: string
@@ -49,6 +51,7 @@ export default function ShippingForm({
   formData,
   setFormData,
   onSubmit,
+  isAuthenticated, // Destructure the new prop
   sendingOtp,
   verifyingOtp,
   otp,
@@ -63,81 +66,81 @@ export default function ShippingForm({
   const [errors, setErrors] = useState<FormErrors>({})
   const [touched, setTouched] = useState<{[key: string]: boolean}>({})
 
-  const validateField = (name: string, value: string): string => {
-    switch (name) {
-      case 'name':
-        if (!value.trim()) return 'Full name is required'
-        if (value.trim().length < 2) return 'Name must be at least 2 characters'
-        return ''
-      case 'email':
-        if (!value.trim()) return 'Email is required'
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(value)) return 'Please enter a valid email address'
-        return ''
-      case 'phone':
-        if (!value.trim()) return 'Phone number is required'
-        const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/
-        if (!phoneRegex.test(value)) return 'Please enter a valid phone number'
-        return ''
-      case 'address':
-        if (!value.trim()) return 'Address is required'
-        if (value.trim().length < 5) return 'Please enter a complete address'
-        return ''
-      case 'city':
-        if (!value.trim()) return 'City is required'
-        return ''
-      case 'postalCode':
-        if (!value.trim()) return 'Postal code is required'
-        return ''
-      case 'country':
-        if (!value.trim()) return 'Country is required'
-        return ''
-      default:
-        return ''
+  // ... (All validation and handler functions remain the same)
+    const validateField = (name: string, value: string): string => {
+        switch (name) {
+            case 'name':
+                if (!value.trim()) return 'Full name is required'
+                if (value.trim().length < 2) return 'Name must be at least 2 characters'
+                return ''
+            case 'email':
+                if (!value.trim()) return 'Email is required'
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                if (!emailRegex.test(value)) return 'Please enter a valid email address'
+                return ''
+            case 'phone':
+                if (!value.trim()) return 'Phone number is required'
+                const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/
+                if (!phoneRegex.test(value)) return 'Please enter a valid phone number'
+                return ''
+            case 'address':
+                if (!value.trim()) return 'Address is required'
+                if (value.trim().length < 5) return 'Please enter a complete address'
+                return ''
+            case 'city':
+                if (!value.trim()) return 'City is required'
+                return ''
+            case 'postalCode':
+                if (!value.trim()) return 'Postal code is required'
+                return ''
+            case 'country':
+                if (!value.trim()) return 'Country is required'
+                return ''
+            default:
+                return ''
+        }
     }
-  }
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-    let isValid = true
+    const validateForm = (): boolean => {
+        const newErrors: FormErrors = {}
+        let isValid = true
 
-    Object.keys(formData).forEach(key => {
-      const error = validateField(key, formData[key as keyof CustomerInfo])
-      if (error) {
-        newErrors[key] = error
-        isValid = false
-      }
-    })
+        Object.keys(formData).forEach(key => {
+            const error = validateField(key, formData[key as keyof CustomerInfo])
+            if (error) {
+                newErrors[key] = error
+                isValid = false
+            }
+        })
 
-    setErrors(newErrors)
-    setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}))
-    return isValid
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }))
+        setErrors(newErrors)
+        setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}))
+        return isValid
     }
-  }
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setTouched(prev => ({ ...prev, [name]: true }))
-    
-    const error = validateField(name, value)
-    setErrors(prev => ({ ...prev, [name]: error }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (validateForm()) {
-      onSubmit()
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target
+        setFormData(prev => ({ ...prev, [name]: value }))
+        
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }))
+        }
     }
-  }
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target
+        setTouched(prev => ({ ...prev, [name]: true }))
+        
+        const error = validateField(name, value)
+        setErrors(prev => ({ ...prev, [name]: error }))
+    }
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (validateForm()) {
+            onSubmit()
+        }
+    }
 
   return (
     <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
@@ -180,17 +183,18 @@ export default function ShippingForm({
               <Mail className="w-4 h-4 inline mr-2" />
               Email Address *
             </label>
+            {/* --- MODIFIED: Email input is disabled for logged-in users --- */}
             <input
               type="email"
               name="email"
               required
-              disabled={sendingOtp || verifyingOtp}
+              disabled={sendingOtp || verifyingOtp || isAuthenticated}
               value={formData.email}
               onChange={handleInputChange}
               onBlur={handleBlur}
               className={`w-full border text-white bg-zinc-800 rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-200 text-sm sm:text-base
                 ${errors.email && touched.email ? 'border-red-500 bg-red-900/20' : 'border-zinc-700 hover:border-zinc-600 focus:border-white'} 
-                ${sendingOtp || verifyingOtp ? 'bg-zinc-700/50 cursor-not-allowed' : ''}
+                ${(sendingOtp || verifyingOtp || isAuthenticated) ? 'bg-zinc-700/50 cursor-not-allowed text-zinc-400' : ''}
                 focus:outline-none focus:ring-2 focus:ring-white/20`}
               placeholder="Enter your email address"
             />
@@ -320,8 +324,8 @@ export default function ShippingForm({
           </div>
         </div>
 
-        {/* OTP Verification Section */}
-        {otpSent && !otpVerified && (
+        {/* --- MODIFIED: OTP Section is now hidden for logged-in users --- */}
+        {!isAuthenticated && otpSent && !otpVerified && (
           <div className="pt-4 sm:pt-6 border-t border-zinc-700">
             <div className="bg-blue-900/30 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 border border-blue-800">
               <h3 className="text-lg font-semibold text-blue-400 mb-2 flex items-center">
@@ -430,6 +434,7 @@ export default function ShippingForm({
                 Verifying...
               </>
             ) : (
+              // This logic works for both guests and logged-in users now
               otpSent && !otpVerified ? 'Verify and Continue' : 'Continue to Review'
             )}
           </button>

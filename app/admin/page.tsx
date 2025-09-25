@@ -1,5 +1,5 @@
 import React from 'react'
-import AdminDashboard from '@/components/AdminDashboard'
+import AdminDashboard from '@/components/AdminComp/AdminDashboard'
 function page() {
   return (
     <div >

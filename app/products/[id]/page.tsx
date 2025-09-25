@@ -25,10 +25,10 @@ import {
 } from 'lucide-react'
 import PremiumFooter from '@/components/Footer'
 import Navbar from '@/components/Navbar'
-import { FormEvent } from 'react' // Find the 'react' import and add FormEvent
+import { FormEvent } from 'react'
 import LeaveReview from '@/components/LeaveReview'
 
-// Updated interface to match new schema
+// Updated interface to match new schema with 'offer' field
 interface ProductWithStock extends Omit<Product, 'stock'> {
   stock: {
     S: number
@@ -47,6 +47,7 @@ interface ProductWithStock extends Omit<Product, 'stock'> {
   }>
   rating: number
   numOfReviews: number
+  offer?: number // New field for discount percentage
 }
 
 // Size stock interface (simplified since stock is now part of product)
@@ -96,16 +97,12 @@ export default function ProductPage() {
       fetchProduct();
     }, 500); 
   };
-
-  
-  // ... rest of your code
   
   const leftContainerRef = useRef<HTMLDivElement>(null)
   const rightContainerRef = useRef<HTMLDivElement>(null)
   const mainContentRef = useRef<HTMLDivElement>(null)
   const spacerRef = useRef<HTMLDivElement>(null)
   
-
   // Check if device is mobile or tablet
   useEffect(() => {
     const checkIsMobile = () => {
@@ -142,7 +139,6 @@ export default function ProductPage() {
   }, [params.id])
 
   // Convert product stock to SizeStock array for compatibility
-  
   const getSizeStock = (): SizeStock[] => {
     if (!product) return []
     return [
@@ -298,26 +294,37 @@ export default function ProductPage() {
     }
   }, [product, isMobile])
 
- // In your ProductPage.tsx file
-
+  // In your ProductPage.tsx file
+  // In your ProductPage.tsx file, update the handleAddToCart function
 const handleAddToCart = async () => {
-  if (!product || !selectedSize || getCurrentStock() === 0 || isAdding) return;
-  
-  setIsAdding(true);
-  
-  // Correct way to call addToCart: pass 'product' and 'selectedSize' as separate arguments.
-  for (let i = 0; i < quantity; i++) {
-    // Pass the main product object and the selected size.
-    // The CartContext is now responsible for handling the internal logic.
-    addToCart(product, selectedSize); 
-  }
-  
-  setShowSuccess(true);
-  
-  setTimeout(() => {
-    setIsAdding(false);
-    setShowSuccess(false);
-  }, 2000);
+  if (!product || !selectedSize || getCurrentStock() === 0 || isAdding) return;
+  
+  setIsAdding(true);
+  
+  // Calculate the discounted price
+  const discountedPrice = product.offer
+    ? product.price - (product.price * product.offer) / 100
+    : product.price;
+  
+  // Create a product object with the discounted price
+  const productWithDiscountedPrice = {
+    ...product,
+    price: discountedPrice,
+    originalPrice: product.price, // Keep original price for reference
+    offer: product.offer // Keep offer info
+  };
+  
+  // Add items with discounted price
+  for (let i = 0; i < quantity; i++) {
+    addToCart(productWithDiscountedPrice, selectedSize); 
+  }
+  
+  setShowSuccess(true);
+  
+  setTimeout(() => {
+    setIsAdding(false);
+    setShowSuccess(false);
+  }, 2000);
 }
 
   const handleQuantityChange = (action: 'increase' | 'decrease') => {
@@ -422,7 +429,7 @@ const handleAddToCart = async () => {
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-black mx-auto"></div>
           <p className="text-white font-medium mt-4">Loading product...</p>
         </div>
-      </div>  
+      </div> 
     )
   }
 
@@ -454,6 +461,13 @@ const handleAddToCart = async () => {
 
   // Product images from the updated schema
   const productImages = product.allimages.length > 0 ? product.allimages : [product.imagefront, product.imageback]
+  
+  // Calculate price and offer display
+  const discountedPrice = product.offer
+    ? product.price - (product.price * product.offer) / 100
+    : product.price;
+
+  const showOffer = typeof product.offer === 'number' && product.offer > 0;
 
   // Mobile Layout
   if (isMobile) {
@@ -549,14 +563,18 @@ const handleAddToCart = async () => {
             <div className="border-b border-zinc-700 pb-6">
               <div className="flex items-baseline space-x-3 mb-2">
                 <span className="text-3xl font-semibold text-white">
-                  ₹{product.price.toLocaleString()}
+                  ₹{Math.round(discountedPrice).toLocaleString()}
                 </span>
-                <span className="text-lg text-zinc-400 line-through">
-                  ₹{Math.round(product.price * 1.2).toLocaleString()}
-                </span>
-                <span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
-                  17% OFF
-                </span>
+                {showOffer && (
+                  <>
+                    <span className="text-lg text-zinc-400 line-through">
+                      ₹{product.price.toLocaleString()}
+                    </span>
+                    <span className="bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
+                      {product.offer}% OFF
+                    </span>
+                  </>
+                )}
               </div>
               <p className="text-sm text-zinc-400">Inclusive of all taxes</p>
             </div>
@@ -675,7 +693,7 @@ const handleAddToCart = async () => {
               ) : (
                 <>
                   <ShoppingCart className="h-5 w-5" />
-                  <span>Add to Cart • ₹{(product.price * quantity).toLocaleString()}</span>
+                  <span>Add to Cart • ₹{(Math.round(discountedPrice) * quantity).toLocaleString()}</span>
                 </>
               )}
             </button>
@@ -834,10 +852,10 @@ const handleAddToCart = async () => {
                     No reviews yet.
                   </div>
                 )}
-                 <LeaveReview
-      productId={params.id as string}
-      onReviewSubmit={handleReviewSubmitted}
-    />
+                <LeaveReview
+                  productId={params.id as string}
+                  onReviewSubmit={handleReviewSubmitted}
+                />
               </div>
             </details>
 
@@ -993,14 +1011,18 @@ const handleAddToCart = async () => {
                 <div className="border-b border-zinc-700 pb-6">
                   <div className="flex items-baseline space-x-3 mb-2">
                     <span className="text-2xl md:text-3xl font-semibold text-white">
-                      ₹{product.price.toLocaleString()}
+                      ₹{Math.round(discountedPrice).toLocaleString()}
                     </span>
-                    <span className="text-lg text-zinc-400 line-through">
-                      ₹{Math.round(product.price * 1.2).toLocaleString()}
-                    </span>
-                    <span className="bg-red-500 text-white px-2 py-1 rounded text-sm font-medium">
-                      17% OFF
-                    </span>
+                    {showOffer && (
+                      <>
+                        <span className="text-lg text-zinc-400 line-through">
+                          ₹{product.price.toLocaleString()}
+                        </span>
+                        <span className="bg-red-500 text-white px-2 py-1 rounded text-sm font-medium">
+                          {product.offer}% OFF
+                        </span>
+                      </>
+                    )}
                   </div>
                   <p className="text-sm text-zinc-300">Inclusive of all taxes</p>
                 </div>
@@ -1121,8 +1143,8 @@ const handleAddToCart = async () => {
                   ) : (
                     <>
                       <ShoppingCart className="h-5 w-5" />
-                      <span className="hidden sm:inline">Add to Cart • ₹{(product.price * quantity).toLocaleString()}</span>
-                      <span className="sm:hidden">₹{(product.price * quantity).toLocaleString()}</span>
+                      <span className="hidden sm:inline">Add to Cart • ₹{(Math.round(discountedPrice) * quantity).toLocaleString()}</span>
+                      <span className="sm:hidden">₹{(Math.round(discountedPrice) * quantity).toLocaleString()}</span>
                     </>
                   )}
                 </button>
@@ -1212,21 +1234,21 @@ const handleAddToCart = async () => {
                   <div className="bg-zinc-900 p-4">
                     <ul className="text-zinc-300 space-y-2 text-sm">
                        <li className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-zinc-500 rounded-full flex-shrink-0 mt-1.5"></div>
-                        <span>Machine wash cold with similar colors</span>
-                      </li>
-                      <li className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-zinc-500 rounded-full flex-shrink-0 mt-1.5"></div>
-                        <span>Do not bleach or use harsh detergents</span>
-                      </li>
-                      <li className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-zinc-500 rounded-full flex-shrink-0 mt-1.5"></div>
-                        <span>Tumble dry low heat or hang to dry</span>
-                      </li>
-                      <li className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-zinc-500 rounded-full flex-shrink-0 mt-1.5"></div>
-                        <span>Iron on low heat if needed</span>
-                      </li>
+                         <div className="w-2 h-2 bg-zinc-500 rounded-full flex-shrink-0 mt-1.5"></div>
+                         <span>Machine wash cold with similar colors</span>
+                       </li>
+                       <li className="flex items-start space-x-2">
+                         <div className="w-2 h-2 bg-zinc-500 rounded-full flex-shrink-0 mt-1.5"></div>
+                         <span>Do not bleach or use harsh detergents</span>
+                       </li>
+                       <li className="flex items-start space-x-2">
+                         <div className="w-2 h-2 bg-zinc-500 rounded-full flex-shrink-0 mt-1.5"></div>
+                         <span>Tumble dry low heat or hang to dry</span>
+                       </li>
+                       <li className="flex items-start space-x-2">
+                         <div className="w-2 h-2 bg-zinc-500 rounded-full flex-shrink-0 mt-1.5"></div>
+                         <span>Iron on low heat if needed</span>
+                       </li>
                     </ul>
                   </div>
                 </div>
@@ -1263,10 +1285,10 @@ const handleAddToCart = async () => {
                         No reviews yet.
                       </div>
                     )}
-                     <LeaveReview
-      productId={params.id as string}
-      onReviewSubmit={handleReviewSubmitted}
-    />
+                    <LeaveReview
+                      productId={params.id as string}
+                      onReviewSubmit={handleReviewSubmitted}
+                    />
                   </div>
                 </div>
 
@@ -1316,7 +1338,7 @@ const handleAddToCart = async () => {
             </div>
           </div>
         </div>
-      </div>  
+      </div> 
       <PremiumFooter/>
     </div>
   )

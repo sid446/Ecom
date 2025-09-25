@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import type { ProductWithStock } from '@/types'
 
+
 interface ProductsResponse {
   data: ProductWithStock[]
   pagination: {
@@ -167,10 +168,20 @@ export const ProductsProvider: React.FC<ProductsProviderProps> = ({
   const getPriceRange = (): { min: number; max: number } => {
     if (products.length === 0) return { min: 0, max: 10000 }
     
-    const prices = products.map(product => product.price)
+    const prices = products.map(product => {
+      // Calculate the discounted price if an offer exists
+      const finalPrice = product.offer
+        ? product.price - (product.price * product.offer / 100)
+        : product.price;
+      return finalPrice;
+    });
+
+    // Check if prices array is empty after mapping
+    if (prices.length === 0) return { min: 0, max: 10000 }
+
     return {
-      min: Math.floor(Math.min(...prices) / 100) * 100,
-      max: Math.ceil(Math.max(...prices) / 100) * 100
+      min: Math.floor(Math.min(...prices)),
+      max: Math.ceil(Math.max(...prices))
     }
   }
 

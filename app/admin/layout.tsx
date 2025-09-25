@@ -1,3 +1,4 @@
+import { ProductsProvider } from '@/context/ProductContext'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -12,7 +13,9 @@ export default function AdminLayout({
 }) {
   return (
     <div className="admin-layout">
+      <ProductsProvider>
       {children}
+      </ProductsProvider>
     </div>
   )
 }

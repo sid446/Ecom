@@ -57,34 +57,37 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     case 'INIT_CART':
       return action.payload;
 
-    case 'ADD_TO_CART': {
-      const { product, selectedSize } = action.payload;
-      const existingItem = state.items.find(
-        (item) => item._id === product._id && item.selectedSize === selectedSize
-      );
-      
-      let updatedItems;
-      if (existingItem) {
-        updatedItems = state.items.map((item) =>
-          item._id === product._id && item.selectedSize === selectedSize
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        const newItem: CartItem = {
-          _id: product._id,
-          name: product.name,
-          price: product.price,
-          imagefront: product.imagefront,
-          selectedSize,
-          quantity: 1,
-          image: product.imagefront,
-        };
-        updatedItems = [...state.items, newItem];
-      }
-      // Invalidate coupon if cart changes
-      return { ...state, items: updatedItems, appliedCoupon: null };
-    }
+   // In your CartContext.tsx, update the ADD_TO_CART case
+case 'ADD_TO_CART': {
+  const { product, selectedSize } = action.payload;
+  const existingItem = state.items.find(
+    (item) => item._id === product._id && item.selectedSize === selectedSize
+  );
+  
+  let updatedItems;
+  if (existingItem) {
+    updatedItems = state.items.map((item) =>
+      item._id === product._id && item.selectedSize === selectedSize
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    );
+  } else {
+    const newItem: CartItem = {
+      _id: product._id,
+      name: product.name,
+      price: product.price, // This is now the discounted price
+      originalPrice: product.originalPrice, // Keep original price
+      offer: product.offer, // Keep offer percentage
+      imagefront: product.imagefront,
+      selectedSize,
+      quantity: 1,
+      image: product.imagefront,
+    };
+    updatedItems = [...state.items, newItem];
+  }
+  // Invalidate coupon if cart changes
+  return { ...state, items: updatedItems, appliedCoupon: null };
+}
 
     case 'REMOVE_FROM_CART': {
       const updatedItems = state.items.filter((item) => item._id !== action.payload);

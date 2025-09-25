@@ -12,6 +12,8 @@ export interface IReview extends Document {
   comment: string
   createdAt?: Date
   updatedAt?: Date
+  offer?: number;
+  
 }
 
 /**
@@ -39,6 +41,7 @@ export interface IProduct extends Document {
   // Virtual properties
   totalStock?: number
   isInStock?: boolean
+  offer?: number;
   isLowStock?: boolean
 }
 
@@ -71,7 +74,10 @@ const reviewSchema = new Schema<IReview>(
       trim: true,
       maxlength: [1000, 'Review comment cannot exceed 1000 characters']
     },
+    
   },
+
+  
   {
     timestamps: true, // Adds createdAt and updatedAt for each review
   }
@@ -195,7 +201,15 @@ const ProductSchema = new Schema<IProduct>(
       default: 0,
       min: [0, 'Number of reviews cannot be negative']
     },
+    offer: {
+      type: Number,
+      required: false, // It's optional
+      min: [0, 'Offer percentage cannot be negative'],
+      max: [100, 'Offer percentage cannot exceed 100'],
+      default: 0
+    },
   },
+  
   {
     timestamps: true, // Adds createdAt and updatedAt for the entire product
     toJSON: { virtuals: true },

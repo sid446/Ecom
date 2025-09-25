@@ -2,12 +2,15 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useCart } from '@/context/CartContext'
-import { ShoppingCart, Home, Store, X, User, Heart, Package, Menu, Phone, Info } from 'lucide-react'
+import { useUser } from '@/context/UserContext'
+import UserAvatar from './UaeAvatar' 
+import { ShoppingCart, Home, Store, X, User, Package, Menu, Phone, Info, LogIn, LogOut } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 
 const Navbar: React.FC = () => {
   const { getCartItemsCount } = useCart()
+  const { isAuthenticated, userInfo, logout } = useUser()
   const cartCount = getCartItemsCount()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -15,6 +18,7 @@ const Navbar: React.FC = () => {
   const pathname = usePathname()
   const router = useRouter()
 
+  // ... (all your useEffects and handler functions remain exactly the same) ...
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -39,14 +43,12 @@ const Navbar: React.FC = () => {
 
     if (isMenuOpen) {
       document.addEventListener('keydown', handleEscape)
-      // Only prevent body scroll, don't set overflow hidden on html
       const originalStyle = window.getComputedStyle(document.body).overflow
       document.body.style.overflow = 'hidden'
       
-      // Focus first menu item
       setTimeout(() => {
-        const firstMenuItem = menuRef.current?.querySelector('a')
-        firstMenuItem?.focus()
+        const firstMenuItem = menuRef.current?.querySelector('a, button')
+        if(firstMenuItem instanceof HTMLElement) firstMenuItem.focus()
       }, 100)
       
       return () => {
@@ -67,12 +69,16 @@ const Navbar: React.FC = () => {
     setIsMenuOpen(false)
   }, [])
 
-  // Function to scroll to a section on the home page
+  const handleLogout = () => {
+    logout()
+    closeMenu()
+    router.push('/') // Redirect to home after logout
+  }
+
   const scrollToSection = useCallback((sectionId: string) => {
+    closeMenu()
     if (pathname !== '/') {
-      // If not on home page, navigate to home page first
       router.push('/')
-      // Wait for navigation to complete, then scroll
       setTimeout(() => {
         const element = document.getElementById(sectionId)
         if (element) {
@@ -80,36 +86,28 @@ const Navbar: React.FC = () => {
         }
       }, 300)
     } else {
-      // If already on home page, scroll directly
       const element = document.getElementById(sectionId)
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     }
-    closeMenu()
-  }, [pathname, router])
+  }, [pathname, router, closeMenu])
 
   const isActivePath = (path: string, sectionId?: string) => {
     if (sectionId) {
-      // For Shop and Categories, they're active when on home page
       return pathname === '/'
     }
     return pathname === path
   }
 
   const menuItems = [
-    { href: '/home', label: 'Home', icon: Home },
+    { href: '/', label: 'Home', icon: Home },
     { href: '/shop', label: 'Shop', icon: Store, sectionId: 'products-section' },
     { href: '/categories', label: 'Categories', icon: Store, sectionId: 'categories-section' },
     { href: '/story', label: 'About Us', icon: Info },
     { href: '/information/contactUs', label: 'Contact', icon: Phone },
   ]
 
-  const accountItems = [
-    
-    { href: '/orders', label: 'My Orders', icon: Package },
-    
-  ]
 
   return (
     <>
@@ -157,12 +155,20 @@ const Navbar: React.FC = () => {
             <div className="flex items-center justify-end flex-shrink-0">
               <div className="flex items-center space-x-1">
                 <Link
-                  href="/account"
-                  className="flex items-center space-x-1 px-2 sm:px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 group"
+                  href="/my-account"
+                  className="flex items-center space-x-2 px-2 sm:px-3 py-2 rounded-lg text-sm font-medium text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200 group"
                   aria-label="Go to account"
                 >
-                  <User size={20} className="group-hover:scale-110 transition-transform flex-shrink-0" />
-                  <span className="hidden md:inline whitespace-nowrap">Account</span>
+                  {/* --- 2. CONDITIONALLY RENDER AVATAR OR ICON --- */}
+                  {isAuthenticated && userInfo ? (
+                    <UserAvatar user={userInfo} />
+                  ) : (
+                    <User size={20} className="group-hover:scale-110 transition-transform flex-shrink-0" />
+                  )}
+
+                  <span className="hidden md:inline whitespace-nowrap">
+                    {isAuthenticated && userInfo ? userInfo.name?.split(' ')[0] : 'Account'}
+                  </span>
                 </Link>
                 
                 <Link
@@ -189,6 +195,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
+      {/* ... (The rest of your component, including the Sliding Menu, remains exactly the same) ... */}
       {/* Overlay */}
       {isMenuOpen && (
         <div 
@@ -210,7 +217,9 @@ const Navbar: React.FC = () => {
       >
         {/* Menu Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate">Navigation</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 truncate">
+            {isAuthenticated && userInfo ? `Hi, ${userInfo.name?.split(' ')[0]}` : 'Navigation'}
+          </h2>
           <button
             onClick={closeMenu}
             className="p-2 rounded-full hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors duration-200 flex-shrink-0 ml-4"
@@ -231,7 +240,6 @@ const Navbar: React.FC = () => {
                 </h3>
                 {menuItems.map(({ href, label, icon: Icon, sectionId }) => {
                   if (sectionId) {
-                    // For items with sectionId (Shop, Categories), use button with custom handling
                     return (
                       <button
                         key={href}
@@ -255,7 +263,6 @@ const Navbar: React.FC = () => {
                       </button>
                     )
                   } else {
-                    // For regular items, use Link component
                     return (
                       <Link
                         key={href}
@@ -288,29 +295,34 @@ const Navbar: React.FC = () => {
                 <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 sm:mb-4">
                   Account
                 </h3>
-                {accountItems.map(({ href, label, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={closeMenu}
-                    className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full ${
-                      isActivePath(href)
-                        ? 'bg-black text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400'
-                    }`}
-                  >
-                    <Icon 
-                      size={18} 
-                      className={`group-hover:scale-110 transition-transform flex-shrink-0 ${
-                        isActivePath(href) ? 'text-white' : 'text-gray-500'
-                      }`} 
-                    />
-                    <span className="truncate">{label}</span>
-                    {isActivePath(href) && (
-                      <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />
-                    )}
-                  </Link>
-                ))}
+                {isAuthenticated ? (
+                  <>
+                    {/* Logged In Links */}
+                    <Link href="/my-account" onClick={closeMenu} className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full ${isActivePath('/my-account') ? 'bg-black text-white shadow-lg' : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100'}`}>
+                      <User size={18} className={`group-hover:scale-110 transition-transform flex-shrink-0 ${isActivePath('/my-account') ? 'text-white' : 'text-gray-500'}`} />
+                      <span className="truncate">My Profile</span>
+                      {isActivePath('/my-account') && <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />}
+                    </Link>
+                    <Link href="/my-account" onClick={() => { closeMenu(); }} className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full ${isActivePath('/orders') ? 'bg-black text-white shadow-lg' : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100'}`}>
+                      <Package size={18} className={`group-hover:scale-110 transition-transform flex-shrink-0 ${isActivePath('/orders') ? 'text-white' : 'text-gray-500'}`} />
+                      <span className="truncate">My Orders</span>
+                      {isActivePath('/orders') && <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />}
+                    </Link>
+                    <button onClick={handleLogout} className="flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full text-gray-700 hover:bg-gray-100 focus:bg-gray-100">
+                      <LogOut size={18} className="group-hover:scale-110 transition-transform flex-shrink-0 text-gray-500" />
+                      <span className="truncate">Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Logged Out Link */}
+                    <Link href="/my-account" onClick={closeMenu} className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg font-medium transition-all duration-200 group w-full ${isActivePath('/my-account') ? 'bg-black text-white shadow-lg' : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100'}`}>
+                      <LogIn size={18} className={`group-hover:scale-110 transition-transform flex-shrink-0 ${isActivePath('/my-account') ? 'text-white' : 'text-gray-500'}`} />
+                      <span className="truncate">Login / Sign Up</span>
+                      {isActivePath('/my-account') && <div className="ml-auto w-2 h-2 bg-white rounded-full flex-shrink-0" />}
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

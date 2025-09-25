@@ -7,7 +7,20 @@ import { useCart } from '@/context/CartContext'
 import { ShoppingCart, Package, Star, Plus, Check, X, Minus } from 'lucide-react'
 import { ProductWithStock } from '@/types'
 
-// Updated Product interface to match the new structure
+// Price formatter utility function
+const formatPrice = (price: number): string => {
+  // Check if price has decimal places
+  if (price % 1 === 0) {
+    // No decimal places, show as integer
+    return price.toLocaleString()
+  } else {
+    // Has decimal places, show with 2 decimal places
+    return price.toLocaleString(undefined, { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })
+  }
+}
 
 interface ProductCardProps {
   product: ProductWithStock
@@ -30,6 +43,12 @@ const SizeSelectionModal: React.FC<SizeSelectionModalProps> = ({
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)
+
+  // Calculate prices based on offer
+  const discountedPrice = product.offer
+    ? product.price - (product.price * product.offer) / 100
+    : product.price;
+  const showOffer = typeof product.offer === 'number' && product.offer > 0;
 
   // Simplified since we now always have the structured stock
   const getSizeStock = () => {
@@ -117,11 +136,18 @@ const SizeSelectionModal: React.FC<SizeSelectionModalProps> = ({
               </h4>
               <div className="flex items-center space-x-2 mb-1">
                 <span className="text-lg font-semibold text-gray-900">
-                  ₹{product.price.toLocaleString()}
+                  ₹{formatPrice(discountedPrice)}
                 </span>
-                <span className="text-sm text-gray-500 line-through">
-                  ₹{Math.round(product.price * 1.2).toLocaleString()}
-                </span>
+                {showOffer && (
+                  <span className="text-sm text-gray-500 line-through">
+                    ₹{formatPrice(product.price)}
+                  </span>
+                )}
+                {showOffer && (
+                  <span className="bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                    {product.offer}% OFF
+                  </span>
+                )}
               </div>
               {/* Rating display */}
               {product.numOfReviews > 0 && (
@@ -257,7 +283,7 @@ const SizeSelectionModal: React.FC<SizeSelectionModalProps> = ({
             ) : (
               <>
                 <ShoppingCart className="h-4 w-4" />
-                <span>Add to Cart • ₹{(product.price * quantity).toLocaleString()}</span>
+                <span>Add to Cart • ₹{formatPrice(discountedPrice * quantity)}</span>
               </>
             )}
           </button>
@@ -274,6 +300,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const [showSuccess, setShowSuccess] = useState(false)
   const [showSizeModal, setShowSizeModal] = useState(false)
 
+  // Calculate price based on offer
+  const discountedPrice = product.offer
+    ? product.price - (product.price * product.offer) / 100
+    : product.price;
+  const showOffer = typeof product.offer === 'number' && product.offer > 0;
+
   const handleCardClick = () => {
     router.push(`/products/${product._id}`)
   }
@@ -285,22 +317,33 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     setShowSizeModal(true)
   }
 
+  // Updated handleModalAddToCart function with discount logic
   const handleModalAddToCart = async (size: string, quantity: number) => {
-  if (!product || !size) return;
+    if (!product || !size) return;
 
-  // The product object is already of type ProductWithStock, which extends Product,
-  // so it has all the required properties like description, allimages, etc.
-  // You can now safely pass it to the addToCart function.
-  for (let i = 0; i < quantity; i++) {
-    addToCart(product, size); // Pass size as the second parameter
-  }
+    // Calculate the discounted price
+    const discountedPrice = product.offer
+      ? product.price - (product.price * product.offer) / 100
+      : product.price;
 
-  // Show success animation
-  setShowSuccess(true);
-  setTimeout(() => {
-    setShowSuccess(false);
-  }, 1500);
-};
+    // Create a product object with the discounted price
+    const productWithDiscountedPrice = {
+      ...product,
+      price: discountedPrice,
+      originalPrice: product.price, // Store original price
+      // offer is already in the product object
+    };
+
+    for (let i = 0; i < quantity; i++) {
+      addToCart(productWithDiscountedPrice, size);
+    }
+
+    // Show success animation
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 1500);
+  };
 
   const getStockStatus = () => {
     const totalStock = Object.values(product.stock).reduce((sum, stock) => sum + stock, 0)
@@ -338,11 +381,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           />
 
-          {/* Mock "Save 40%" Badge - Top Left */}
-          <div className="absolute top-2 left-2 z-20 text-red-600 text-xs sm:text-xs md:text-base lg:text-base font-bold px-1 py-1 flex flex-col items-center leading-tight">
-            <span>SAVE</span>
-            <span>40%</span>
-          </div>
+          {/* Offer Badge - Top Left (Conditionally rendered) */}
+          {showOffer && (
+            <div className="absolute top-2 left-2 z-20 text-red-600 text-xs sm:text-xs md:text-base lg:text-base font-bold px-1 py-1 flex flex-col items-center leading-tight">
+              <span>SAVE</span>
+              <span>{product.offer}%</span>
+            </div>
+          )}
 
           {/* Add to Cart Button */}
           <button
@@ -391,13 +436,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </div>
           )}
 
-          {/* Price display with strikethrough for original price */}
-          <div className="flex items-baseline justify-between">
-            <p className="text-xs text-gray-500 font-semibold line-through">
-              Rs.{Math.round(product.price * 1.66).toLocaleString()}
-            </p>
-            <p className="text-xs font-medium text-gray-900">
-              Rs.{product.price.toLocaleString()}
+          {/* Price display with strikethrough for original price - Updated with decimal formatting */}
+          <div className="flex items-baseline space-x-2">
+            {showOffer && (
+              <p className="text-xs text-gray-500 font-semibold line-through">
+                ₹{formatPrice(product.price)}
+              </p>
+            )}
+            <p className="text-sm font-medium text-gray-900">
+              ₹{formatPrice(discountedPrice)}
             </p>
           </div>
 

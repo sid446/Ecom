@@ -13,9 +13,10 @@ import mongoose from 'mongoose';
  * - category: Filter by category
  * - minPrice: Minimum price filter
  * - maxPrice: Maximum price filter
- * - sortBy: Sort field (name, price, stock, createdAt)
+ * - sortBy: Sort field (name, price, offer, stock, createdAt)
  * - sortOrder: Sort order (asc, desc)
  * - stockFilter: Stock filter (all, in-stock, low-stock, out-of-stock)
+ * - hasOffer: Filter for products that have an offer (boolean)
  * - all: Fetch all products (ignores pagination)
  */
 export async function GET(request: NextRequest) {
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
     const stockFilter = searchParams.get('stockFilter') || 'all';
+    const hasOffer = searchParams.get('hasOffer') === 'true'; // New filter
 
     // Build query object
     let query: any = {};
@@ -59,6 +61,11 @@ export async function GET(request: NextRequest) {
       query.price = {};
       if (minPrice !== null) query.price.$gte = minPrice;
       if (maxPrice !== null) query.price.$lte = maxPrice;
+    }
+
+    // Offer filter
+    if (hasOffer) {
+      query.offer = { $gt: 0 };
     }
 
     // Stock filter - We'll handle this in aggregation pipeline for complex stock structure
@@ -112,6 +119,9 @@ export async function GET(request: NextRequest) {
         break;
       case 'price':
         sortObj.price = sortOrder === 'asc' ? 1 : -1;
+        break;
+      case 'offer': // ADDED: New case to sort by offer
+        sortObj.offer = sortOrder === 'asc' ? 1 : -1;
         break;
       case 'stock':
         // Sort by total stock
@@ -184,12 +194,11 @@ export async function GET(request: NextRequest) {
         totalProducts = result[0].totalCount[0]?.count || 0;
       } else {
         // Regular query with pagination
+        totalProducts = await Product.countDocuments(query);
         products = await Product.find(query)
           .sort(sortObj)
           .skip(skip)
           .limit(limit);
-
-        totalProducts = await Product.countDocuments(query);
       }
     }
 
@@ -216,6 +225,7 @@ export async function GET(request: NextRequest) {
           minPrice,
           maxPrice,
           stockFilter,
+          hasOffer,
           sortBy,
           sortOrder
         }
@@ -281,6 +291,13 @@ export async function POST(request: NextRequest) {
         message: 'Price must be a non-negative number'
       }, { status: 400 });
     }
+    
+    // Validate offer (if provided) - ADDED
+    if ('offer' in body && (typeof body.offer !== 'number' || body.offer < 0 || body.offer > 100)) {
+      return NextResponse.json({
+        message: 'Offer must be a number between 0 and 100, or not provided'
+      }, { status: 400 });
+    }
 
     // Validate images array
     if (!Array.isArray(body.allimages) || body.allimages.length === 0) {
@@ -299,6 +316,7 @@ export async function POST(request: NextRequest) {
       allimages,
       stock,
       category,
+      offer, // ADDED
     } = body;
 
     const newProductData = {
@@ -315,6 +333,7 @@ export async function POST(request: NextRequest) {
         XL: Number(stock.XL) || 0,
       },
       category: category.trim(),
+      offer: typeof offer === 'number' ? Number(offer) : undefined, // ADDED
       reviews: [],
       rating: 0,
       numOfReviews: 0,

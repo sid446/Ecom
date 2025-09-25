@@ -1,19 +1,15 @@
+// File: /api/coupons/[code]/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { CouponService } from '@/lib/coupon-service';
 import { IApiResponse, ICoupon } from '@/types/coupon';
 
-interface RouteParams {
-  params: {
-    code: string;
-  };
-}
-
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  context: any
 ): Promise<NextResponse<IApiResponse<ICoupon>>> {
   try {
-    const result = await CouponService.getCouponByCode(params.code);
+    const result = await CouponService.getCouponByCode(context.params.code);
     
     if (!result.success) {
       return NextResponse.json({
@@ -38,10 +34,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: RouteParams
+  context: any
 ): Promise<NextResponse<IApiResponse>> {
   try {
-    const result = await CouponService.deleteCoupon(params.code);
+    const result = await CouponService.deleteCoupon(context.params.code);
     
     if (!result.success) {
       return NextResponse.json({

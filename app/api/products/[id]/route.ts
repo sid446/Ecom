@@ -40,6 +40,10 @@ export async function GET(
  * PUT /api/products/[id]
  * Updates a product by its ID.
  */
+/**
+ * PUT /api/products/[id]
+ * Updates a product by its ID.
+ */
 export async function PUT(
   request: NextRequest,
   context: any
@@ -59,7 +63,6 @@ export async function PUT(
 
     // --- SECURITY IMPROVEMENT: DESTRUCTURING ---
     // Explicitly pull out only the fields that are safe to update.
-    // This prevents a user from maliciously updating protected fields like reviews or ratings.
     const {
       name,
       description,
@@ -69,18 +72,19 @@ export async function PUT(
       allimages,
       stock,
       category,
+      offer, // ADD THIS LINE
     } = body;
 
-    const updateData = {
-      name,
-      description,
-      price,
-      imagefront,
-      imageback,
-      allimages,
-      stock,
-      category,
-    };
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = price;
+    if (imagefront !== undefined) updateData.imagefront = imagefront;
+    if (imageback !== undefined) updateData.imageback = imageback;
+    if (allimages !== undefined) updateData.allimages = allimages;
+    if (stock !== undefined) updateData.stock = stock;
+    if (category !== undefined) updateData.category = category;
+    if (offer !== undefined) updateData.offer = offer; // ADD THIS LINE
 
     const product = await Product.findByIdAndUpdate(
       productId,
@@ -99,7 +103,13 @@ export async function PUT(
   } catch (error) {
     console.error(`Failed to update product:`, error);
     if (error instanceof mongoose.Error.ValidationError) {
-        const errors = Object.values(error.errors).map(e => e.message);
+        const errors = Object.values(error.errors).map(e => {
+            // Added type check to handle different validation error structures
+            if (typeof e === 'object' && e !== null && 'message' in e) {
+              return e.message;
+            }
+            return 'Validation error';
+        });
         return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
     }
     return NextResponse.json({ message: 'Failed to update product' }, { status: 500 });
