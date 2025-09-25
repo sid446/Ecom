@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Cloudinary upload error:', error);
         return NextResponse.json(
-            { error: 'Upload failed', details: error.message },
+            { 
+                error: 'Upload failed', 
+                details: typeof error === 'object' && error !== null && 'message' in error ? (error as { message: string }).message : String(error)
+            },
             { status: 500 }
         );
     }

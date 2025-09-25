@@ -29,8 +29,9 @@ export async function DELETE(request: NextRequest) {
 
     } catch (error) {
         console.error('Cloudinary delete error:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
         return NextResponse.json(
-            { error: 'Delete failed', details: error.message },
+            { error: 'Delete failed', details: errorMessage },
             { status: 500 }
         );
     }
