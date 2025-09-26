@@ -25,16 +25,11 @@ interface StorySection {
 const storyData: StorySection[] = [
   {
     id: 'beginning',
-    title: 'The Spark',
-    subtitle: 'From a Dorm Room Idea to Reality',
-    content: 'It wasn\'t a boardroom, it was a late-night study session fueled by instant noodles and a shared frustration: Why did all streetwear look the same? Our founders, Alex and Maya, decided to stop complaining and start creating. They envisioned a brand that wasn\'t just about the drip, but about identity – a fusion of digital culture, bold graphics, and conscious creation.',
+    title: 'The Dream',
+    subtitle: 'From a young age, I\'ve always believed that clothing is more than just fabric, it\'s a reflection of who you are. It\'s the silent language you use to express your style, your personality, and your story. KASHE CLOTHING was born from this belief a childhood dream nurtured over the years to become a reality.',
+    content: 'Every piece you\'ll find here is designed with heart and purpose, a testament to the idea that what you wear should make you feel empowered and effortless. This isn\'t just a clothing brand it\'s a piece of my dream, and it\'s a story that I\'m so excited to share with you through every stitch and design. Thank you for being a part of this journey.',
   },
-  {
-    id: 'growth',
-    title: 'The Level Up',
-    subtitle: 'More Than Just a Brand',
-    content: 'Our first drop sold out in 72 hours. But the real moment was seeing our designs in your TikToks, your Insta stories, your digital worlds. We realized we weren\'t just shipping packages; we were building a global crew. A community that values authenticity over hype and isn\'t afraid to challenge the status quo, one graphic tee at a time.',
-  }
+  
 ];
 
 export default function ScrollOverStoryPage() {
@@ -75,8 +70,7 @@ export default function ScrollOverStoryPage() {
             </h1>
             
             <p className="text-xl md:text-2xl text-white mb-12 font-light max-w-2xl mx-auto leading-relaxed">
-              A journey of passion, sustainability, and community that transforms fashion 
-              into a force for positive change
+              The journey from a childhood dream to a passionate movement that transforms fashion into a force for positive change
             </p>
             
             <div className="flex items-center justify-center space-x-8 text-sm text-white">
@@ -84,10 +78,7 @@ export default function ScrollOverStoryPage() {
               
                 <span>Crafted with Love</span>
               </div>
-              <div className="flex font-semibold items-center space-x-2">
-               
-                <span>Sustainably Made</span>
-              </div>
+              
               <div className="flex font-semibold items-center space-x-2">
                 
                 <span>Community Driven</span>
@@ -122,8 +113,8 @@ export default function ScrollOverStoryPage() {
                     {section.subtitle}
                   </h3>
                 </div>
-                
-                <p className="text-lg text-gray-300 leading-relaxed max-w-3xl mx-auto">
+
+                <p className="text-xl md:text-2xl text-gray-300 mb-8 font-light leading-relaxed">
                   {section.content}
                 </p>
               </div>
