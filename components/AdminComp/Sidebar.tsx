@@ -1,4 +1,3 @@
-// File: components/admin/Sidebar.tsx (Updated version)
 'use client'
 
 import React from 'react'
@@ -7,8 +6,9 @@ import {
   Package, 
   ShoppingCart, 
   Users, 
-  Image, // Add Image icon for carousel
-  RotateCcw, // Add RotateCcw icon for returns
+  Image,
+  RotateCcw,
+  Percent, // Add Percent icon for coupons
   Menu,
   X,
   Home
@@ -45,6 +45,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: 'Orders',
       icon: ShoppingCart,
       description: 'View and manage orders'
+    },
+    {
+      id: 'coupons', // Add coupons menu item
+      label: 'Coupons',
+      icon: Percent,
+      description: 'Manage discount coupons'
     },
     {
       id: 'returns',

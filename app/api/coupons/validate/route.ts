@@ -1,3 +1,4 @@
+//api/coupons/validate/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { CouponService } from '@/lib/coupon-service';
 import { IApiResponse } from '@/types/coupon';

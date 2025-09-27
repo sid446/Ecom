@@ -12,6 +12,36 @@ import {
 import { Types } from 'mongoose';
 
 export class CouponService {
+  
+  static async updateCoupon(code: string, updateData: ICouponCreateData): Promise<IApiResponse<ICoupon>> {
+    await connectToDatabase();
+    
+    try {
+      const coupon = await Coupon.findOne({ code: code.toUpperCase() });
+      if (!coupon) {
+        return { success: false, message: 'Coupon not found' };
+      }
+
+      // Update coupon fields
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof ICouponCreateData] !== undefined) {
+          (coupon as any)[key] = updateData[key as keyof ICouponCreateData];
+        }
+      });
+
+      coupon.updatedAt = new Date();
+      await coupon.save();
+
+      return { 
+        success: true, 
+        message: 'Coupon updated successfully', 
+        data: coupon 
+      };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
   static async validateCoupon(
     code: string, 
     orderAmount: number,
@@ -227,7 +257,19 @@ export class CouponService {
     await connectToDatabase();
     
     try {
-      const coupon = new Coupon(couponData);
+      // Check if coupon code already exists
+      const existingCoupon = await Coupon.findOne({ code: couponData.code.toUpperCase() });
+      if (existingCoupon) {
+        return { success: false, message: 'Coupon code already exists' };
+      }
+
+      // Create new coupon with uppercase code
+      const couponToCreate = {
+        ...couponData,
+        code: couponData.code.toUpperCase()
+      };
+
+      const coupon = new Coupon(couponToCreate);
       await coupon.save();
       return { success: true, message: 'Coupon created successfully', data: coupon };
     } catch (error: any) {
@@ -264,11 +306,44 @@ export class CouponService {
     await connectToDatabase();
     
     try {
-      const result = await Coupon.findOneAndDelete({ code: code.toUpperCase() });
-      if (!result) {
+      const coupon = await Coupon.findOne({ code: code.toUpperCase() });
+      if (!coupon) {
         return { success: false, message: 'Coupon not found' };
       }
+
+      // Check if coupon has been used
+      if (coupon.usedCount > 0) {
+        return { 
+          success: false, 
+          message: 'Cannot delete a coupon that has been used. Deactivate it instead.' 
+        };
+      }
+
+      await Coupon.findOneAndDelete({ code: code.toUpperCase() });
       return { success: true, message: 'Coupon deleted successfully' };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  static async toggleCouponStatus(code: string): Promise<IApiResponse<ICoupon>> {
+    await connectToDatabase();
+    
+    try {
+      const coupon = await Coupon.findOne({ code: code.toUpperCase() });
+      if (!coupon) {
+        return { success: false, message: 'Coupon not found' };
+      }
+
+      coupon.isActive = !coupon.isActive;
+      coupon.updatedAt = new Date();
+      await coupon.save();
+
+      return { 
+        success: true, 
+        message: `Coupon ${coupon.isActive ? 'activated' : 'deactivated'} successfully`, 
+        data: coupon 
+      };
     } catch (error: any) {
       return { success: false, message: error.message };
     }

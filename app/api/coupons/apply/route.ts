@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CouponService } from '@/lib/coupon-service';
 import { IApiResponse } from '@/types/coupon';
-
+//api/coupons/apply/route.ts
 interface ApplyRequest {
   code: string;
   orderAmount: number;

@@ -1,4 +1,3 @@
-// File: components/admin/AdminDashboard.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react';
@@ -9,7 +8,8 @@ import ProductsTab from './ProductsTab';
 import OrdersTab from './OrdersTab';
 import UsersTab from './UsersTab';
 import CarouselTab from './CarouselTab';
-import ReturnsTab from './ReturnsTab'; // Import the new ReturnsTab
+import ReturnsTab from './ReturnsTab';
+import CouponsTab from './CouponsTab'; // Import the new CouponsTab
 import ProductModal from './ProductModal';
 import { Product, Order, User } from './types';
 import { api } from './api';
@@ -97,8 +97,10 @@ const AdminDashboard = () => {
                 return <UsersTab users={users} orders={orders} />;
             case 'carousel':
                 return <CarouselTab />;
-            case 'returns': // Add the new returns case
+            case 'returns':
                 return <ReturnsTab />;
+            case 'coupons': // Add the new coupons case
+                return <CouponsTab />;
             default:
                 return <OverviewTab products={products} orders={orders} users={users} />;
         }

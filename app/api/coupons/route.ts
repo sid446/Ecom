@@ -1,3 +1,4 @@
+//api/coupons/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { CouponService } from '@/lib/coupon-service';
 import { IApiResponse, ICoupon, ICouponCreateData } from '@/types/coupon';
