@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Order from "@/models/Order";
+import User from "@/models/User"; // IMPORTANT: Import User model to register the schema
 
 // GET /api/orders/:id
 export async function GET(
@@ -36,30 +37,23 @@ export async function PUT(
     await connectToDatabase();
     const body = await request.json();
 
-    // Find the existing order to update it
-    const order = await Order.findById(context.params.id);
+    // Use findByIdAndUpdate with populate in one operation
+    const updatedOrder = await Order.findByIdAndUpdate(
+      context.params.id,
+      {
+        ...(body.status && { status: body.status }),
+        ...(body.isPaid !== undefined && { isPaid: body.isPaid }),
+        ...(body.paidAt && { paidAt: body.paidAt }),
+        ...(body.isDelivered !== undefined && { isDelivered: body.isDelivered }),
+        ...(body.deliveredAt && { deliveredAt: body.deliveredAt }),
+        ...(body.track !== undefined && { track: body.track })
+      },
+      { new: true, runValidators: true }
+    ).populate("user", "name email phone");
 
-    if (!order) {
+    if (!updatedOrder) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
-
-    // Update fields from the request body if they exist
-    order.status = body.status || order.status;
-    order.isPaid = body.isPaid !== undefined ? body.isPaid : order.isPaid;
-    order.paidAt = body.paidAt || order.paidAt;
-    order.isDelivered = body.isDelivered !== undefined ? body.isDelivered : order.isDelivered;
-    order.deliveredAt = body.deliveredAt || order.deliveredAt;
-    
-    // --- NEW: Update the tracking link ---
-    // Allows setting the track link or clearing it by passing null
-    if (body.track !== undefined) {
-      order.track = body.track;
-    }
-
-    const updatedOrder = await order.save();
-    
-    // Populate user details for the response
-    await updatedOrder.populate("user", "name email phone");
 
     return NextResponse.json(updatedOrder);
   } catch (error: any) {
