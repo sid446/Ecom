@@ -94,7 +94,7 @@ const OrderSchema = new mongoose.Schema({
     required: false,
     default: null,
   },
-  // Return related fields
+  
   hasReturns: {
     type: Boolean,
     default: false
