@@ -15,8 +15,8 @@ const kalnia = Kalnia({
 });
 
 export const metadata: Metadata = {
-  title: 'Simple Store - E-commerce',
-  description: 'Simple e-commerce store built with Next.js and MongoDB',
+  title: 'Kashé',
+  description: 'something you will love',
 };
 
 export default function RootLayout({
