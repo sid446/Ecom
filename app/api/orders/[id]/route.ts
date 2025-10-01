@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Order from "@/models/Order";
-import User from "@/models/User"; // IMPORTANT: Import User model to register the schema
+import { User } from "@/models/User";// IMPORTANT: Import User model to register the schema
 
 // GET /api/orders/:id
 export async function GET(
