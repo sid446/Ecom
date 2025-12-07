@@ -5,21 +5,21 @@ function Categories({ onCategorySelect }: { onCategorySelect: (category: string)
         {
             id: 1,
             type: "Hoodies",
-            img: "/AllHoodies.png",
+            img: "/AllHoodies.JPEG",
             tagline: "Stay Warm, Stay Stylish",
             badge: "Best Seller"
         },
         {
             id: 2,
             type: "Sweatshirts",
-            img: "/AllSweatShirt.png",
+            img: "/AllSweatShirt.JPEG",
             tagline: "Comfort Redefined",
             badge: "Premium"
         },
         {
             id: 3,
             type: "TShirts",
-            img: "/AllTshirt.png",
+            img: "/AllTshirt.JPEG",
             tagline: "Express Yourself",
             badge: "New Collection"
         }
