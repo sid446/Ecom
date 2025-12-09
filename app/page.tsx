@@ -245,6 +245,7 @@ export default function Home() {
 
     // Clear existing filters first (optional - you can remove this if you want to keep other filters)
     setSearchTerm("")
+    setFilterByStock("all")
 
     // Set the selected category (already in lowercase from Categories component)
     setSelectedCategories([categoryType])
@@ -276,22 +277,28 @@ export default function Home() {
         (filterByStock === "low-stock" && stockTotal > 0 && stockTotal <= 5)
 
       const matchesCategory =
-        selectedCategories.length === 0 || selectedCategories.includes(product.category)
+        selectedCategories.length === 0 || selectedCategories.some(c => c.toLowerCase() === product.category.toLowerCase())
+
+      const effectivePrice = product.offer
+        ? product.price - (product.price * product.offer / 100)
+        : product.price
 
       const matchesPrice =
-        product.price >= priceRange.min && product.price <= priceRange.max
+        effectivePrice >= priceRange.min && effectivePrice <= priceRange.max
 
       return matchesSearch && matchesStockFilter && matchesCategory && matchesPrice
     })
 
     filtered.sort((a: any, b: any) => {
+      const getPrice = (p: any) => p.offer ? p.price - (p.price * p.offer / 100) : p.price
+      
       switch (sortBy) {
         case "name":
           return a.name.localeCompare(b.name)
         case "price-low":
-          return a.price - b.price
+          return getPrice(a) - getPrice(b)
         case "price-high":
-          return b.price - a.price
+          return getPrice(b) - getPrice(a)
         case "stock":
           return getStockTotal(b.stock) - getStockTotal(a.stock)
         default:

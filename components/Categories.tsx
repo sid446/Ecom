@@ -64,7 +64,7 @@ function Categories({ onCategorySelect }: { onCategorySelect: (category: string)
                     {items.map((item) => (
                         <div 
                             key={item.id}
-                            onClick={() => handleCategoryClick(item.type.toLowerCase())}
+                            onClick={() => handleCategoryClick(item.type === "TShirts" ? "t-shirts" : item.type.toLowerCase())}
                             className="flex-shrink-0 w-full sm:w-full md:w-80 lg:w-120 text-black transition-all duration-300 overflow-hidden group cursor-pointer hover:shadow-xl"
                         >
                             {/* Product Image Container with Relative Positioning */}
