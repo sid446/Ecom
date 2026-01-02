@@ -17,6 +17,9 @@ const kalnia = Kalnia({
 export const metadata: Metadata = {
   title: 'Kashé',
   description: 'something you will love',
+  icons: {
+    icon: '/fevicon.PNG',
+  },
 };
 
 export default function RootLayout({
