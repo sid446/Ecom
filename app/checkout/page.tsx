@@ -148,16 +148,29 @@ export default function Checkout() {
   const handleRazorpayPayment = async () => {
     // ... (This function remains unchanged)
     try {
+        if (!window.Razorpay) {
+            alert("Razorpay SDK failed to load. Please check your internet connection.");
+            setLoading(false);
+            return;
+        }
         const orderId = await createRazorpayOrder();
         const options = {
-            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, amount: total * 100, currency: 'INR', name: 'Your Store Name',
-            description: 'Purchase from Your Store', order_id: orderId, handler: (response: any) => handleOrderSubmitAfterPayment(response),
+            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
+            amount: total * 100, 
+            currency: 'INR', 
+            name: 'Your Store Name',
+            description: 'Purchase from Your Store', 
+            order_id: orderId, 
+            handler: (response: any) => handleOrderSubmitAfterPayment(response),
             prefill: { name: formData.name, email: formData.email, contact: formData.phone },
-            notes: { address: formData.address }, theme: { color: '#000000' }, modal: { ondismiss: () => setLoading(false) },
+            notes: { address: formData.address }, 
+            theme: { color: '#000000' }, 
+            modal: { ondismiss: () => setLoading(false) },
         };
         const razorpay = new window.Razorpay(options);
         razorpay.open();
     } catch (error) {
+        console.error("Payment Error:", error);
         setErrors({ submit: 'Failed to initialize payment. Please try again.' });
         setLoading(false);
     }

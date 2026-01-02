@@ -44,7 +44,7 @@ interface ShippingFormProps {
 }
 
 const COUNTRIES = [
-  'INDIA'
+  'India'
 ]
 
 export default function ShippingForm({

@@ -717,7 +717,7 @@ const AccountPage: React.FC = () => {
                               order.status
                             )}`}
                           >
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
+                            {(order.status || '').charAt(0).toUpperCase() + (order.status || '').slice(1).replace('_', ' ')}
                           </span>
                           <p className="text-2xl font-bold text-white mt-1">₹{order.totalPrice.toFixed(2)}</p>
                         </div>
@@ -748,7 +748,7 @@ const AccountPage: React.FC = () => {
                                 </p>
                                 {item.returnStatus && item.returnStatus !== 'none' && (
                                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStatusColor(item.returnStatus)}`}>
-                                    {item.returnStatus.charAt(0).toUpperCase() + item.returnStatus.slice(1).replace('_', ' ')}
+                                    {(item.returnStatus || '').charAt(0).toUpperCase() + (item.returnStatus || '').slice(1).replace('_', ' ')}
                                   </span>
                                 )}
                               </div>
@@ -857,7 +857,7 @@ const AccountPage: React.FC = () => {
                             )}`}
                           >
                             {getReturnStatusIcon(returnItem.status)}
-                            <span className="ml-1">{returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1).replace('_', ' ')}</span>
+                            <span className="ml-1">{(returnItem.status || '').charAt(0).toUpperCase() + (returnItem.status || '').slice(1).replace('_', ' ')}</span>
                           </span>
                           <p className="text-xl font-bold text-white mt-1">₹{returnItem.returnAmount.toFixed(2)}</p>
                           {returnItem.refundAmount && returnItem.refundAmount > 0 && (

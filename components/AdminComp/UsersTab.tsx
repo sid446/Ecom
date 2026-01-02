@@ -36,7 +36,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, orders }) => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                          <span className="text-white font-medium">{user.name.charAt(0)}</span>
+                          <span className="text-white font-medium">{(user.name || 'U').charAt(0)}</span>
                         </div>
                         <div>
                           <p className="text-white font-medium">{user.name}</p>

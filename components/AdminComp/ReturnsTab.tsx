@@ -543,7 +543,7 @@ const ReturnsTab: React.FC<ReturnsTabProps> = () => {
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(returnItem.status)}`}>
                         {getStatusIcon(returnItem.status)}
                         <span className="ml-1">
-                          {returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1).replace('_', ' ')}
+                          {(returnItem.status || '').charAt(0).toUpperCase() + (returnItem.status || '').slice(1).replace('_', ' ')}
                         </span>
                       </span>
                       
@@ -683,7 +683,7 @@ const ReturnsTab: React.FC<ReturnsTabProps> = () => {
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedReturn.status)}`}>
                       {getStatusIcon(selectedReturn.status)}
                       <span className="ml-2">
-                        {selectedReturn.status.charAt(0).toUpperCase() + selectedReturn.status.slice(1).replace('_', ' ')}
+                        {(selectedReturn.status || '').charAt(0).toUpperCase() + (selectedReturn.status || '').slice(1).replace('_', ' ')}
                       </span>
                     </span>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
