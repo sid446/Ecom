@@ -14,6 +14,8 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onOrderUpdate }) => {
   const [localOrders, setLocalOrders] = useState(orders);
   // State to manage the currently edited tracking link: { orderId: string, track: string | null } | null
   const [trackEdit, setTrackEdit] = useState<{ orderId: string, track: string | null } | null>(null);
+  // State to manage the currently viewed order details
+  const [viewOrder, setViewOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     setLocalOrders(orders);
@@ -42,12 +44,12 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onOrderUpdate }) => {
 
     try {
       // Call the generic updateOrder function implemented in api.ts
-      await api.updateOrder(trackEdit.orderId, { track: trackEdit.track || null }); 
-      
+      await api.updateOrder(trackEdit.orderId, { track: trackEdit.track || null });
+
       // Update local state for immediate UI reflection
-      setLocalOrders(prev => 
-        prev.map(order => 
-          order._id === trackEdit.orderId ? { ...order, track: trackEdit.track } : order
+      setLocalOrders(prev =>
+        prev.map(order =>
+          order._id === trackEdit.orderId ? { ...order, track: trackEdit.track || undefined } : order
         )
       );
       setTrackEdit(null); // Close the modal
@@ -172,7 +174,11 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onOrderUpdate }) => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center">
-                      <button className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                      <button 
+                        onClick={() => setViewOrder(order)}
+                        className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        title="View Order Details"
+                      >
                         <Eye className="h-4 w-4" />
                       </button>
                     </div>
@@ -222,6 +228,124 @@ const OrdersTab: React.FC<OrdersTabProps> = ({ orders, onOrderUpdate }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* --- ORDER DETAILS MODAL --- */}
+      {viewOrder && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-4xl border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Eye className="h-6 w-6 text-blue-400" />
+                Order Details - #{viewOrder.orderId || viewOrder._id?.slice(-6)}
+              </h3>
+              <button
+                onClick={() => setViewOrder(null)}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Customer Information */}
+              <div className="bg-gray-700/30 rounded-xl p-4">
+                <h4 className="text-lg font-semibold text-white mb-3">Customer Information</h4>
+                <div className="space-y-2 text-sm">
+                  <p><span className="text-gray-400">Name:</span> <span className="text-white">{viewOrder.user?.name || 'Unknown'}</span></p>
+                  <p><span className="text-gray-400">Email:</span> <span className="text-white">{viewOrder.user?.email || 'N/A'}</span></p>
+                  <p><span className="text-gray-400">Phone:</span> <span className="text-white">{viewOrder.user?.phone || 'N/A'}</span></p>
+                </div>
+              </div>
+
+              {/* Order Information */}
+              <div className="bg-gray-700/30 rounded-xl p-4">
+                <h4 className="text-lg font-semibold text-white mb-3">Order Information</h4>
+                <div className="space-y-2 text-sm">
+                  <p><span className="text-gray-400">Order ID:</span> <span className="text-white">#{viewOrder.orderId || viewOrder._id?.slice(-6)}</span></p>
+                  <p><span className="text-gray-400">Status:</span> <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(viewOrder.status)}`}>{(viewOrder.status || '').charAt(0).toUpperCase() + (viewOrder.status || '').slice(1).replace('_', ' ')}</span></p>
+                  <p><span className="text-gray-400">Date:</span> <span className="text-white">{new Date(viewOrder.createdAt).toLocaleString()}</span></p>
+                  {viewOrder.track && (
+                    <p><span className="text-gray-400">Tracking:</span> <a href={viewOrder.track} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline">View Tracking</a></p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Address */}
+            {viewOrder.shippingAddress && (
+              <div className="bg-gray-700/30 rounded-xl p-4 mt-6">
+                <h4 className="text-lg font-semibold text-white mb-3">Shipping Address</h4>
+                <div className="text-sm text-gray-300">
+                  <p>{viewOrder.shippingAddress.address}</p>
+                  <p>{viewOrder.shippingAddress.city}, {viewOrder.shippingAddress.postalCode}</p>
+                  <p>{viewOrder.shippingAddress.country}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Order Items */}
+            <div className="bg-gray-700/30 rounded-xl p-4 mt-6">
+              <h4 className="text-lg font-semibold text-white mb-3">Order Items</h4>
+              <div className="space-y-4">
+                {viewOrder.orderItems?.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-600/30 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-500 rounded-lg flex items-center justify-center">
+                        <Package className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">{item.name}</p>
+                        <p className="text-gray-400 text-sm">Size: {item.size} • Qty: {item.quantity}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-semibold">₹{(item.price * item.quantity).toFixed(2)}</p>
+                      <p className="text-gray-400 text-sm">₹{item.price.toFixed(2)} each</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-gray-700/30 rounded-xl p-4 mt-6">
+              <h4 className="text-lg font-semibold text-white mb-3">Order Summary</h4>
+              <div className="space-y-2 text-sm">
+                {viewOrder.originalAmount && viewOrder.originalAmount > viewOrder.totalPrice && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Original Amount:</span>
+                    <span className="text-gray-300 line-through">₹{viewOrder.originalAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                {viewOrder.couponDiscount && viewOrder.couponDiscount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Coupon Discount ({viewOrder.couponCode}):</span>
+                    <span className="text-green-400">-₹{viewOrder.couponDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-semibold text-lg pt-2 border-t border-gray-600">
+                  <span className="text-white">Total:</span>
+                  <span className="text-white">₹{viewOrder.totalPrice?.toFixed(2) || '0.00'}</span>
+                </div>
+                {viewOrder.paymentMethod && (
+                  <div className="flex justify-between text-sm pt-1">
+                    <span className="text-gray-400">Payment:</span>
+                    <span className="text-white">{viewOrder.paymentMethod}</span>
+                  </div>
+                )}
+                {viewOrder.isPaid !== undefined && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Paid:</span>
+                    <span className={viewOrder.isPaid ? 'text-green-400' : 'text-red-400'}>
+                      {viewOrder.isPaid ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -16,20 +16,42 @@ export interface Product {
 }
 
 export interface Order {
-  track: any;
   _id: string;
   orderId?: string;
-  user?: { _id: string; name: string; email: string; };
-  orderItems?: any[];
-  totalPrice: number;
-  status: string;
-  createdAt: string;
+  user?: { _id: string; name: string; email: string; phone?: string; };
+  orderItems?: {
+    name: string;
+    quantity: number;
+    size: string;
+    image: string;
+    price: number;
+    product: string;
+    returnStatus?: string;
+    returnQuantity?: number;
+  }[];
   shippingAddress?: {
     address: string;
     city: string;
     postalCode: string;
     country: string;
-  }
+  };
+  paymentMethod?: string;
+  originalAmount?: number;
+  couponCode?: string;
+  couponDiscount?: number;
+  totalPrice: number;
+  status: string;
+  isPaid?: boolean;
+  paidAt?: string;
+  isDelivered?: boolean;
+  deliveredAt?: string;
+  track?: string;
+  hasReturns?: boolean;
+  totalReturnAmount?: number;
+  isReturnEligible?: boolean;
+  returnWindowExpiresAt?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface User {
